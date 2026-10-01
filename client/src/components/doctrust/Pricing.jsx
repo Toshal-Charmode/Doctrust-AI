@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Check, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function Pricing({ onOpenUpload }) {
+  const { t } = useLanguage();
   const [isAnnual, setIsAnnual] = useState(true);
 
   return (
@@ -12,21 +14,21 @@ export function Pricing({ onOpenUpload }) {
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide uppercase mb-3">
             <Zap className="w-3.5 h-3.5 text-blue-600" />
-            <span>Simple, Transparent Pricing</span>
+            <span>{t.pricing.badge}</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#111827] tracking-tight mb-4">
-            Predictable Plans for High-Speed Verification
+            {t.pricing.title}
           </h2>
 
           <p className="text-base sm:text-lg text-gray-500 font-normal">
-            Start free in our developer sandbox. Upgrade whenever you need enterprise webhooks, multi-tenant compliance, or high-volume throughput.
+            {t.pricing.subtitle}
           </p>
 
           {/* Monthly / Annual Toggle */}
           <div className="flex items-center justify-center gap-3 mt-8">
             <span className={`text-sm font-semibold ${!isAnnual ? 'text-[#111827]' : 'text-gray-400'}`}>
-              Monthly
+              {t.pricing.monthly}
             </span>
             <button
               onClick={() => setIsAnnual(!isAnnual)}
@@ -41,14 +43,12 @@ export function Pricing({ onOpenUpload }) {
             </button>
             <div className="flex items-center gap-1.5">
               <span className={`text-sm font-semibold ${isAnnual ? 'text-[#111827]' : 'text-gray-400'}`}>
-                Annual
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Save 20%
+                {t.pricing.annual}
               </span>
             </div>
           </div>
         </div>
+
 
         {/* 3 Pricing Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">

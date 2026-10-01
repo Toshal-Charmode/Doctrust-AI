@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { LanguageProvider } from './context/LanguageContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
 
 // Pages
@@ -19,9 +20,10 @@ import SettingsPage from './pages/SettingsPage';
 export function App() {
   return (
     <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Routes>
+      <LanguageProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
             {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<LoginPage />} />
@@ -90,7 +92,8 @@ export function App() {
           </Routes>
         </ToastProvider>
       </AuthProvider>
-    </BrowserRouter>
+    </LanguageProvider>
+  </BrowserRouter>
   );
 }
 

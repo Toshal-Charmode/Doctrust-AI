@@ -13,16 +13,15 @@ import {
   Check,
 } from 'lucide-react';
 
-export const LANGUAGES = [
-  { code: 'en', name: 'English', native: 'English', flag: '🇺🇸' },
-  { code: 'hi', name: 'Hindi', native: 'हिंदी', flag: '🇮🇳' },
-  { code: 'es', name: 'Spanish', native: 'Español', flag: '🇪🇸' },
-  { code: 'fr', name: 'French', native: 'Français', flag: '🇫🇷' },
-  { code: 'de', name: 'German', native: 'Deutsch', flag: '🇩🇪' },
-  { code: 'ja', name: 'Japanese', native: '日本語', flag: '🇯🇵' },
-];
+import { useLanguage } from '../../context/LanguageContext';
 
-export function Navbar({ onOpenUpload, currentLang, onSelectLang }) {
+export { LANGUAGES } from '../../context/translations';
+
+export function Navbar({ onOpenUpload, currentLang: propLang, onSelectLang: propSelectLang }) {
+  const { currentLang: ctxLang, setLanguage, t, languages } = useLanguage();
+  const currentLang = propLang || ctxLang;
+  const onSelectLang = propSelectLang || setLanguage;
+
   const [scrolled, setScrolled] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -48,11 +47,12 @@ export function Navbar({ onOpenUpload, currentLang, onSelectLang }) {
   }, []);
 
   const navLinks = [
-    { label: 'Solutions', href: '#features' },
-    { label: 'Verification API', href: '#api-preview' },
-    { label: 'Use Cases', href: '#use-cases' },
-    { label: 'Pricing', href: '#pricing' },
+    { label: t.nav.solutions, href: '#features' },
+    { label: t.nav.verificationApi, href: '#api-preview' },
+    { label: t.nav.useCases, href: '#use-cases' },
+    { label: t.nav.pricing, href: '#pricing' },
   ];
+
 
   return (
     <header
@@ -116,9 +116,9 @@ export function Navbar({ onOpenUpload, currentLang, onSelectLang }) {
                     className="absolute right-0 top-full mt-2 w-52 bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-200/60 p-2 z-50 ring-1 ring-black/5"
                   >
                     <div className="px-2 py-1.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                      Select Interface Language
+                      {t.nav.selectLang}
                     </div>
-                    {LANGUAGES.map((lang) => (
+                    {languages.map((lang) => (
                       <button
                         key={lang.code}
                         onClick={() => {
@@ -151,7 +151,7 @@ export function Navbar({ onOpenUpload, currentLang, onSelectLang }) {
               to="/login"
               className="text-xs sm:text-sm font-semibold text-gray-700 hover:text-[#111827] px-3 py-2 rounded-xl hover:bg-gray-100/70 transition-colors"
             >
-              Sign In
+              {t.nav.signIn}
             </Link>
 
             {/* Primary 'Start Verifying' CTA Button */}
@@ -159,7 +159,7 @@ export function Navbar({ onOpenUpload, currentLang, onSelectLang }) {
               onClick={onOpenUpload}
               className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
             >
-              <span>Start Verifying</span>
+              <span>{t.nav.startVerifying}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

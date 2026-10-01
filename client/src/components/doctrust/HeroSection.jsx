@@ -86,32 +86,35 @@ export const FloatingDocuments = () => {
   );
 };
 
+import { useLanguage } from '../../context/LanguageContext';
+
 export function HeroSection({ onOpenUpload, onShowToast }) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('identity');
   const [isProcessing, setIsProcessing] = useState(false);
   const [verifiedState, setVerifiedState] = useState(false);
 
   const tabData = {
     identity: {
-      title: 'Identity & ID',
-      filename: 'Sample_Passport_DE_4910.pdf',
-      docType: 'Biometric Passport',
+      title: t.hero.poSample,
+      filename: 'Purchase_Order_PO-1024.pdf',
+      docType: 'Purchase Order',
       score: '99.8%',
-      details: 'ICAO 9303 MRZ checksum valid • No pixel splices or font anomalies',
+      details: '100 units @ $500.00 = $50,000.00 • Authorized buyer signature valid',
     },
     invoice: {
-      title: 'Invoice & PO',
-      filename: 'Acme_Industrial_INV-9042.pdf',
+      title: t.hero.invMismatchSample,
+      filename: 'Invoice_Acme_INV-9042.pdf',
       docType: 'Commercial Invoice',
-      score: '98.9%',
-      details: '3-Way Match Verified with PO-1024 • Total: $55,000.00 USD (Tax accurate)',
+      score: '65.2%',
+      details: 'Variance detected: Billed $55,000 (110 units) exceeds PO authorization ($50,000 / 100 units)',
     },
     legal: {
-      title: 'Legal Contracts',
-      filename: 'Master_Services_Contract_2026.pdf',
-      docType: 'Corporate Agreement',
-      score: '99.5%',
-      details: 'Cryptographic PKI digital signatures verified • 32/32 pages authenticated',
+      title: t.hero.drSample,
+      filename: 'Delivery_Receipt_DR-5512.pdf',
+      docType: 'Delivery Receipt',
+      score: '99.4%',
+      details: 'Physical count of 100 units intake at Warehouse Bay 4 • Sign-off valid',
     },
   };
 
@@ -123,9 +126,9 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
       setVerifiedState(true);
       if (onShowToast) {
         onShowToast({
-          title: 'Document Verified',
-          message: `${tabData[activeTab].filename} validated with ${tabData[activeTab].score} accuracy.`,
-          type: 'success',
+          title: activeTab === 'invoice' ? t.hero.auditResultFlagged : t.hero.auditResultPassed,
+          message: `${tabData[activeTab].filename} evaluated with ${tabData[activeTab].score} confidence score.`,
+          type: activeTab === 'invoice' ? 'error' : 'success',
           tag: 'Verified',
         });
       }
@@ -148,7 +151,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
           <motion.div variants={fadeInUp} className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100 text-sm font-medium text-blue-700 shadow-sm">
               <Sparkles className="w-4 h-4 text-blue-600" />
-              DocTrust Engine 4.2 • Next-Gen AI Verification
+              {t.hero.badge}
             </span>
           </motion.div>
 
@@ -157,8 +160,8 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
             variants={fadeInUp}
             className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1] mb-6"
           >
-            Read. Verify. Trust. <br />
-            <span className="text-blue-600">instantly.</span>
+            {t.hero.title1} <br />
+            <span className="text-blue-600">{t.hero.titleHighlight}</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -166,7 +169,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
             variants={fadeInUp}
             className="text-lg md:text-xl text-gray-500 max-w-2xl mb-10 leading-relaxed font-normal"
           >
-            Upload your documents and let our AI extract, verify, and process data securely in milliseconds.
+            {t.hero.subtitle}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -181,18 +184,18 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
               className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25 cursor-pointer"
             >
               <UploadCloud className="w-5 h-5" />
-              <span>Upload a Document</span>
+              <span>{t.hero.ctaPrimary}</span>
               <ArrowRight className="w-5 h-5 ml-1" />
             </motion.button>
 
             <motion.a
-              href="#api-preview"
+              href="#features"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             >
               <Code className="w-5 h-5 text-gray-400" />
-              <span>View API Docs</span>
+              <span>{t.hero.ctaSecondary}</span>
             </motion.a>
           </motion.div>
         </motion.div>
