@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { demoApi } from '../services/dashboardApi';
+import faceAuthApi from '../services/faceAuthApi';
+import FaceEnrollmentModal from '../components/biometrics/FaceEnrollmentModal';
 import {
   Settings,
   Key,
@@ -14,6 +16,12 @@ import {
   Save,
   CheckCircle2,
   Cpu,
+  ScanFace,
+  Lock,
+  RefreshCw,
+  AlertTriangle,
+  Fingerprint,
+  ShieldAlert,
 } from 'lucide-react';
 
 export function SettingsPage() {
@@ -24,6 +32,26 @@ export function SettingsPage() {
   const [threshold, setThreshold] = useState(0.75);
   const [savingKey, setSavingKey] = useState(false);
   const [seedingDemo, setSeedingDemo] = useState(false);
+
+  // Biometric Face Auth state
+  const [faceStatus, setFaceStatus] = useState(null);
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [isReenroll, setIsReenroll] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showDisablePrompt, setShowDisablePrompt] = useState(false);
+  const [showRevokePrompt, setShowRevokePrompt] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const loadFaceStatus = async () => {
+    try {
+      const res = await faceAuthApi.getStatus();
+      if (res.success) {
+        setFaceStatus(res.data);
+      }
+    } catch (err) {
+      console.warn('Failed to load biometric status:', err.message);
+    }
+  };
 
   useEffect(() => {
     async function loadStatus() {
@@ -40,7 +68,49 @@ export function SettingsPage() {
       }
     }
     loadStatus();
+    loadFaceStatus();
   }, []);
+
+  const handleDisableFace = async (e) => {
+    e.preventDefault();
+    if (!confirmPassword) return;
+
+    try {
+      setActionLoading(true);
+      const res = await faceAuthApi.disable({ password: confirmPassword });
+      if (res.success) {
+        showToast('Face authentication disabled successfully.', 'success');
+        setShowDisablePrompt(false);
+        setConfirmPassword('');
+        loadFaceStatus();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to disable face authentication', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRevokeConsent = async (e) => {
+    e.preventDefault();
+    if (!confirmPassword) return;
+
+    try {
+      setActionLoading(true);
+      const res = await faceAuthApi.revokeConsent({ password: confirmPassword });
+      if (res.success) {
+        showToast('Biometric consent revoked and facial templates permanently purged.', 'success');
+        setShowRevokePrompt(false);
+        setConfirmPassword('');
+        loadFaceStatus();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to revoke biometric consent', 'error');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
 
   const handleSaveApiKey = async (e) => {
     e.preventDefault();
@@ -113,6 +183,207 @@ export function SettingsPage() {
           </div>
         </div>
       </div>
+
+      {/* Biometric Face Authentication Card */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 backdrop-blur-sm space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <ScanFace className="w-4 h-4 text-cyan-400" />
+              <span>AI Face Recognition & Biometric Login</span>
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Secure your account with an AI-powered face verification challenge during login.
+            </p>
+          </div>
+
+          <div>
+            {faceStatus?.isEnrolled ? (
+              <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-400 font-semibold text-xs border border-emerald-500/30 flex items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>Face ID Active</span>
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full bg-slate-800 text-slate-400 font-semibold text-xs border border-slate-700">
+                Not Enrolled
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Status Details Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+            <span className="text-[11px] text-slate-400 block mb-1">Face Auth Status</span>
+            <span className={`font-semibold ${faceStatus?.isEnrolled ? 'text-emerald-400' : 'text-slate-300'}`}>
+              {faceStatus?.isEnrolled ? 'Enabled (Required on Login)' : 'Disabled / Standby'}
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+            <span className="text-[11px] text-slate-400 block mb-1">Enrollment Date</span>
+            <span className="font-semibold text-slate-200">
+              {faceStatus?.enrolledAt ? new Date(faceStatus.enrolledAt).toLocaleDateString() : 'N/A'}
+            </span>
+          </div>
+
+          <div className="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+            <span className="text-[11px] text-slate-400 block mb-1">Last Biometric Auth</span>
+            <span className="font-semibold text-cyan-400">
+              {faceStatus?.lastAuthAt ? new Date(faceStatus.lastAuthAt).toLocaleString() : 'No recent login'}
+            </span>
+          </div>
+        </div>
+
+        {/* Action Controls */}
+        <div className="flex flex-wrap gap-2.5 pt-1">
+          {faceStatus?.isEnrolled ? (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsReenroll(true);
+                  setEnrollModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <RefreshCw className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Re-enroll Face Profile</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDisablePrompt(true)}
+                className="px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-amber-300 hover:text-amber-200 border border-amber-500/20 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Lock className="w-3.5 h-3.5 text-amber-400" />
+                <span>Disable Face Login</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowRevokePrompt(true)}
+                className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-rose-400" />
+                <span>Revoke Consent & Purge Templates</span>
+              </button>
+            </>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                setIsReenroll(false);
+                setEnrollModalOpen(true);
+              }}
+              className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-bold shadow-lg shadow-cyan-500/20 transition-all flex items-center gap-2 cursor-pointer"
+            >
+              <ScanFace className="w-4 h-4" />
+              <span>Set Up Face Login</span>
+            </button>
+          )}
+        </div>
+
+        {/* Biometric Privacy & Architecture Notice */}
+        <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80 text-[11px] text-slate-400 leading-relaxed flex items-start gap-2.5">
+          <Fingerprint className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-slate-300 font-semibold">Biometric Privacy Commitment:</strong> DocTrust AI processes facial images using client-edge video capture and our server-side OpenCV computer vision engine. Raw facial photos are discarded immediately after feature extraction; only a 128-dimensional mathematical vector encrypted with AES-256-GCM is retained. Biometric verification is used strictly for authentication continuity and may be disabled or purged at any time.
+          </div>
+        </div>
+
+        {/* Disable Confirmation Prompt */}
+        {showDisablePrompt && (
+          <div className="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 text-xs space-y-3">
+            <div className="flex items-center gap-2 text-amber-300 font-semibold">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Confirm Disabling Face Authentication</span>
+            </div>
+            <p className="text-slate-400">
+              Please enter your account password to confirm disabling face authentication. You will be able to log in with your password only.
+            </p>
+            <form onSubmit={handleDisableFace} className="flex gap-2">
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Account password"
+                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none focus:border-amber-400"
+              />
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="px-4 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {actionLoading ? 'Disabling...' : 'Confirm'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDisablePrompt(false);
+                  setConfirmPassword('');
+                }}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        )}
+
+        {/* Revoke Consent Prompt */}
+        {showRevokePrompt && (
+          <div className="p-4 rounded-xl bg-rose-950/20 border border-rose-500/30 text-xs space-y-3">
+            <div className="flex items-center gap-2 text-rose-300 font-semibold">
+              <ShieldAlert className="w-4 h-4" />
+              <span>Permanently Revoke Biometric Consent & Purge Templates</span>
+            </div>
+            <p className="text-slate-400">
+              This will permanently delete your encrypted facial templates and biometric audit associations from our database. To re-enable, you will need to re-enroll with fresh consent.
+            </p>
+            <form onSubmit={handleRevokeConsent} className="flex gap-2">
+              <input
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
+                className="flex-1 px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-slate-200 outline-none focus:border-rose-400"
+              />
+              <button
+                type="submit"
+                disabled={actionLoading}
+                className="px-4 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs transition-all disabled:opacity-50 cursor-pointer"
+              >
+                {actionLoading ? 'Purging...' : 'Permanently Delete'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowRevokePrompt(false);
+                  setConfirmPassword('');
+                }}
+                className="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 text-xs hover:bg-slate-700"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* Face Enrollment Modal */}
+      <FaceEnrollmentModal
+        isOpen={enrollModalOpen}
+        onClose={() => setEnrollModalOpen(false)}
+        onEnrolled={() => {
+          loadFaceStatus();
+          setEnrollModalOpen(false);
+        }}
+        isReenroll={isReenroll}
+      />
+
 
       {/* Gemini AI Configuration Card */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-6 backdrop-blur-sm space-y-4">

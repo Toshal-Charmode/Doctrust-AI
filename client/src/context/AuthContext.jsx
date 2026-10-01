@@ -56,6 +56,15 @@ export function AuthProvider({ children }) {
     return res;
   };
 
+  const setUserSession = (userData, tokenString) => {
+    setUser(userData);
+    setToken(tokenString);
+    if (userData && tokenString) {
+      localStorage.setItem('docutrust_token', tokenString);
+      localStorage.setItem('docutrust_user', JSON.stringify(userData));
+    }
+  };
+
   const logout = () => {
     setToken(null);
     setUser(null);
@@ -73,6 +82,7 @@ export function AuthProvider({ children }) {
         login,
         register,
         logout,
+        setUserSession,
       }}
     >
       {children}
