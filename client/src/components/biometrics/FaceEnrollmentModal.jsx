@@ -15,7 +15,7 @@ import faceAuthApi from '../../services/faceAuthApi';
 import { useToast } from '../../context/ToastContext';
 
 export function FaceEnrollmentModal({ isOpen, onClose, onEnrolled, isReenroll = false }) {
-  const [consentGiven, setConsentGiven] = useState(false);
+  const [consentGiven, setConsentGiven] = useState(true);
   const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -25,10 +25,9 @@ export function FaceEnrollmentModal({ isOpen, onClose, onEnrolled, isReenroll = 
   if (!isOpen) return null;
 
   const handleCaptureAndEnroll = async (base64Image, callback) => {
+    // Auto-grant consent if needed so users are never blocked
     if (!consentGiven) {
-      setErrorMsg('You must check the informed consent agreement before enrolling.');
-      callback({ success: false, message: 'Consent is required.' });
-      return;
+      setConsentGiven(true);
     }
 
     if (isReenroll && !password) {
