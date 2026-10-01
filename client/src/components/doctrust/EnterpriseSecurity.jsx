@@ -10,8 +10,11 @@ import {
   Shield,
   FileCheck2,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 export function EnterpriseSecurity({ onOpenUpload }) {
+  const { t } = useLanguage();
+
   return (
     <section id="security" className="py-24 sm:py-32 bg-gray-900 text-white relative overflow-hidden">
       {/* Subtle background ambient radial blue glow */}
@@ -22,17 +25,18 @@ export function EnterpriseSecurity({ onOpenUpload }) {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/25 text-blue-400 text-xs font-bold tracking-wide uppercase mb-4">
             <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-            <span>Enterprise Compliance</span>
+            <span>{t.security.badge}</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-extrabold text-white tracking-tight mb-4 leading-tight">
-            Bank-Grade Security for Your Sensitive Data.
+            {t.security.title}
           </h2>
 
           <p className="text-base sm:text-lg text-gray-400 font-normal leading-relaxed">
-            Built with defense-in-depth principles to satisfy strict regulatory audits across multinational banks, healthcare providers, and government agencies.
+            {t.security.subtitle}
           </p>
         </div>
+
 
         {/* 3 Minimal Icon Columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">

@@ -19,7 +19,10 @@ import {
   Zap,
 } from 'lucide-react';
 
+import { useLanguage } from '../../context/LanguageContext';
+
 export function CoreFeatures({ onOpenUpload, onShowToast }) {
+  const { t } = useLanguage();
   // Feature 2: JSON Copy state
   const [copied, setCopied] = useState(false);
 
@@ -79,23 +82,23 @@ export function CoreFeatures({ onOpenUpload, onShowToast }) {
             >
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide uppercase">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
-                <span>AI Document Verification</span>
+                <span>{t.features.f1Badge}</span>
               </div>
 
               <h2 className="text-3xl sm:text-5xl font-extrabold text-[#111827] tracking-tight leading-tight">
-                Spot forged documents with forensic AI precision
+                {t.features.f1Title}
               </h2>
 
               <p className="text-base sm:text-lg text-gray-600 leading-relaxed font-normal">
-                Verify passports, national IDs, driver licenses, and legal certificates in real-time. Detect digital splices, font replacements, physical surface tampering, and face liveness anomalies in milliseconds.
+                {t.features.f1Desc}
               </p>
 
               <div className="space-y-3 pt-2">
                 {[
-                  'Hologram, microprint, and UV security pattern recognition',
-                  'ICAO 9303 MRZ and PDF417 barcode cryptographic checksum validation',
-                  'Pixel-level font artifact, metadata, and digital splice inspection',
-                  'Instant liveness and face biometric verification with 99.8% precision',
+                  'Purchase Orders, Invoices, Delivery Intake Slips & Quotations',
+                  'Confidence scoring (0.00 – 1.00) with classification rationale',
+                  'Automated anomaly and arithmetic discrepancy detection',
+                  'Google Gemini 2.5 Flash with structured Zod schema enforcement',
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center gap-3 text-sm text-gray-700">
                     <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
@@ -111,7 +114,7 @@ export function CoreFeatures({ onOpenUpload, onShowToast }) {
                   onClick={onOpenUpload}
                   className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm shadow-md shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
                 >
-                  <span>Test Document Verification</span>
+                  <span>{t.hero.ctaPrimary}</span>
                   <ArrowRight className="w-4 h-4" />
                 </button>
               </div>

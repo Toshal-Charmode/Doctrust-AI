@@ -1,40 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, HelpCircle, MessageCircle } from 'lucide-react';
-
-const FAQS = [
-  {
-    q: 'How does DocTrust AI detect manipulated or forged documents?',
-    a: 'DocTrust AI utilizes a multi-layered verification pipeline combining high-resolution visual artifact detection (detecting pixel splices, micro-font variations, and compression anomalies), cryptographic checksum audits (validating MRZ, barcode, and digital certificate chains), and cross-database entity reconciliations.',
-  },
-  {
-    q: 'How fast is document extraction and verification?',
-    a: 'Standard documents such as government IDs, commercial invoices, and tax returns are processed and verified in under 400 milliseconds. Complex multi-page financial dossiers or legal binders are validated in under 1.8 seconds.',
-  },
-  {
-    q: 'Is customer document data retained or used for AI training?',
-    a: 'Never. DocTrust AI is architected on a zero-retention foundation. Files uploaded to our web console or REST API are processed inside isolated, ephemeral in-memory sandboxes and permanently purged immediately after verification. We never store or train models on user data.',
-  },
-  {
-    q: 'What formats and languages does DocTrust AI support?',
-    a: 'We support PDF, PNG, JPG, JPEG, TIFF, and DOCX across over 180 countries and 48 languages. Our multi-modal vision engine automatically handles rotated scans, mobile camera captures, and varying lighting angles without pre-processing.',
-  },
-  {
-    q: 'Can we integrate DocTrust AI directly into our backend via API?',
-    a: 'Yes! We provide robust REST endpoints, SDKs for Node.js, Python, and Go, and event-driven webhooks with HMAC SHA-256 signatures. Integration takes fewer than 15 lines of code, and sandbox keys are generated instantly.',
-  },
-  {
-    q: 'How does the pricing work for high-volume enterprise verification?',
-    a: 'We offer a free sandbox tier with 500 document checks per month, followed by scale-as-you-grow volume pricing. Enterprise plans include volume discounts, dedicated private VPC deployments, and custom SLA agreements.',
-  },
-];
+import { useLanguage } from '../../context/LanguageContext';
 
 export function AccordionFAQ({ onOpenUpload }) {
+  const { t } = useLanguage();
   const [openIndex, setOpenIndex] = useState(0);
 
   const toggleAccordion = (idx) => {
     setOpenIndex(openIndex === idx ? null : idx);
   };
+
+  const dynamicFaqs = [
+    { q: t.faq.q1, a: t.faq.a1 },
+    { q: t.faq.q2, a: t.faq.a2 },
+    { q: t.faq.q3, a: t.faq.a3 },
+    { q: t.faq.q4, a: t.faq.a4 },
+  ];
 
   return (
     <section id="faq" className="py-20 sm:py-28 bg-[#F9FAFB] border-t border-gray-200/60">
@@ -43,21 +25,22 @@ export function AccordionFAQ({ onOpenUpload }) {
         <div className="text-center mb-14">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide uppercase mb-3">
             <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
-            <span>Got Questions?</span>
+            <span>{t.faq.badge}</span>
           </div>
 
           <h2 className="text-3xl sm:text-5xl font-extrabold text-[#111827] tracking-tight mb-3">
-            Frequently Asked Questions
+            {t.faq.title}
           </h2>
 
           <p className="text-base text-gray-600 max-w-lg mx-auto font-normal">
-            Everything you need to know about DocTrust AI verification models, security protocols, and integration.
+            {t.faq.subtitle}
           </p>
         </div>
 
         {/* Smooth Accordion FAQ List with AnimatePresence */}
         <div className="space-y-3.5">
-          {FAQS.map((faq, idx) => {
+          {dynamicFaqs.map((faq, idx) => {
+
             const isOpen = openIndex === idx;
             return (
               <div

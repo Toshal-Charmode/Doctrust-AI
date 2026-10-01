@@ -7,9 +7,13 @@ import {
   ArrowUpRight,
   Check,
 } from 'lucide-react';
-import { LANGUAGES } from './Navbar';
+import { useLanguage } from '../../context/LanguageContext';
 
-export function Footer({ currentLang, onSelectLang, onOpenUpload }) {
+export function Footer({ currentLang: propLang, onSelectLang: propSelectLang, onOpenUpload }) {
+  const { currentLang: ctxLang, setLanguage, t, languages } = useLanguage();
+  const currentLang = propLang || ctxLang;
+  const onSelectLang = propSelectLang || setLanguage;
+
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const footerLangRef = useRef(null);
 
@@ -25,47 +29,30 @@ export function Footer({ currentLang, onSelectLang, onOpenUpload }) {
 
   const footerColumns = [
     {
-      title: 'Solutions',
+      title: t.footer.products,
       links: [
-        { label: 'KYC & Identity Verification', href: '#features' },
-        { label: 'Invoice 3-Way Match Audit', href: '#features' },
-        { label: 'Fraud & Tamper Detection', href: '#features' },
-        { label: 'Bank Statement Extraction', href: '#use-cases' },
-        { label: 'Cross-Border AML Screening', href: '#use-cases' },
-        { label: 'Tax & Financial Audit', href: '#use-cases' },
+        { label: t.features.f1Title, href: '#features' },
+        { label: t.features.f2Title, href: '#features' },
+        { label: t.features.f3Title, href: '#features' },
+        { label: t.features.f4Title, href: '#features' },
       ],
     },
     {
-      title: 'Technology',
+      title: t.footer.resources,
       links: [
-        { label: 'Multi-Modal Vision Engine', href: '#features' },
-        { label: 'Forensic OCR Architecture', href: '#features' },
-        { label: 'Verification REST API', href: '#api-preview' },
-        { label: 'Event-Driven Webhooks', href: '#api-preview' },
-        { label: 'Air-Gapped Private VPC', href: '#security' },
-        { label: 'Zero-Knowledge Security', href: '#security' },
+        { label: t.nav.verificationApi, href: '#features' },
+        { label: t.useCases.uc1Title, href: '#use-cases' },
+        { label: t.useCases.uc2Title, href: '#use-cases' },
+        { label: t.useCases.uc3Title, href: '#use-cases' },
       ],
     },
     {
-      title: 'Legal & Privacy',
+      title: t.footer.company,
       links: [
-        { label: 'ISO 27001 Certification', href: '#security' },
-        { label: 'SOC-2 Type II Report', href: '#security' },
-        { label: 'Privacy Policy', href: '#security' },
-        { label: 'Terms of Service', href: '#security' },
-        { label: 'GDPR / CCPA Compliance', href: '#security' },
-        { label: 'Security Disclosures', href: '#security' },
-      ],
-    },
-    {
-      title: 'Company',
-      links: [
-        { label: 'About DocTrust AI', href: '#features' },
-        { label: 'Trust & Safety Center', href: '#security' },
-        { label: 'Customer Case Studies', href: '#use-cases' },
-        { label: 'Documentation & Guides', href: '#faq' },
-        { label: 'Careers (We are hiring!)', href: '#faq' },
-        { label: 'Contact Enterprise Sales', href: '#pricing' },
+        { label: t.nav.pricing, href: '#pricing' },
+        { label: t.security.s1Title, href: '#security' },
+        { label: t.security.s2Title, href: '#security' },
+        { label: t.security.s3Title, href: '#security' },
       ],
     },
   ];
@@ -198,7 +185,7 @@ export function Footer({ currentLang, onSelectLang, onOpenUpload }) {
                 <div className="px-2 py-1 text-[10px] font-bold text-gray-400 uppercase">
                   Change Language
                 </div>
-                {LANGUAGES.map((lang) => (
+                {languages.map((lang) => (
                   <button
                     key={lang.code}
                     onClick={() => {

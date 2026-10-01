@@ -10,6 +10,7 @@ import {
   FileText,
   FileCheck2,
 } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 // Framer Motion Variants for reusable animations
 const fadeInUp = {
@@ -181,27 +182,50 @@ export const FloatingDocuments = () => {
 };
 
 export function HeroSection({ onOpenUpload, onShowToast }) {
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('identity');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [verifiedState, setVerifiedState] = useState(false);
 
   const tabData = {
     identity: {
-      title: 'Identity & ID',
-      filename: 'Sample_Passport_DE_4910.pdf',
-      docType: 'Biometric Passport',
+      title: t?.hero?.poSample || 'Purchase Order',
+      filename: 'Purchase_Order_PO-1024.pdf',
+      docType: 'Purchase Order',
       score: '99.8%',
+      details: '100 units @ $500.00 = $50,000.00 • Authorized buyer signature valid',
     },
     invoice: {
-      title: 'Invoice & PO',
-      filename: 'Acme_Industrial_INV-9042.pdf',
+      title: t?.hero?.invMismatchSample || 'Invoice (Variance)',
+      filename: 'Invoice_Acme_INV-9042.pdf',
       docType: 'Commercial Invoice',
-      score: '98.9%',
+      score: '65.2%',
+      details: 'Variance detected: Billed $55,000 (110 units) exceeds PO authorization ($50,000 / 100 units)',
     },
     legal: {
-      title: 'Legal Contracts',
-      filename: 'Master_Services_Contract_2026.pdf',
-      docType: 'Corporate Agreement',
-      score: '99.5%',
+      title: t?.hero?.drSample || 'Delivery Receipt',
+      filename: 'Delivery_Receipt_DR-5512.pdf',
+      docType: 'Delivery Receipt',
+      score: '99.4%',
+      details: 'Physical count of 100 units intake at Warehouse Bay 4 • Sign-off valid',
     },
+  };
+
+  const handleSimulateInspection = () => {
+    setIsProcessing(true);
+    setVerifiedState(false);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setVerifiedState(true);
+      if (onShowToast) {
+        onShowToast({
+          title: activeTab === 'invoice' ? (t?.hero?.auditResultFlagged || 'Discrepancy Flagged') : (t?.hero?.auditResultPassed || 'Document Verified'),
+          message: `${tabData[activeTab].filename} evaluated with ${tabData[activeTab].score} confidence score.`,
+          type: activeTab === 'invoice' ? 'error' : 'success',
+          tag: 'Verified',
+        });
+      }
+    }, 900);
   };
 
   return (
@@ -224,7 +248,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
           <motion.div variants={fadeInUp} className="mb-6">
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/90 backdrop-blur-md border border-blue-200/80 text-sm font-semibold text-blue-700 shadow-xs">
               <Sparkles className="w-4 h-4 text-blue-600" />
-              DocTrust Engine 4.2 • Next-Gen AI Verification
+              {t?.hero?.badge || 'DocTrust Engine 4.2 • Next-Gen AI Verification'}
             </span>
           </motion.div>
 
@@ -233,8 +257,8 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
             variants={fadeInUp}
             className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1] mb-6"
           >
-            Read. Verify. Trust. <br />
-            <span className="text-blue-600">instantly.</span>
+            {t?.hero?.title1 || 'Read. Verify. Trust.'} <br />
+            <span className="text-blue-600">{t?.hero?.titleHighlight || 'instantly.'}</span>
           </motion.h1>
 
           {/* Subheadline */}
@@ -242,7 +266,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
             variants={fadeInUp}
             className="text-lg md:text-xl text-gray-500 max-w-2xl mb-10 leading-relaxed font-normal"
           >
-            Upload your documents and let our AI extract, verify, and process data securely in milliseconds.
+            {t?.hero?.subtitle || 'Upload your documents and let our AI extract, verify, and process data securely in milliseconds.'}
           </motion.p>
 
           {/* CTA Buttons */}
@@ -257,18 +281,18 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
               className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25 cursor-pointer"
             >
               <UploadCloud className="w-5 h-5" />
-              <span>Upload a Document</span>
+              <span>{t?.hero?.ctaPrimary || 'Upload a Document'}</span>
               <ArrowRight className="w-5 h-5 ml-1" />
             </motion.button>
 
             <motion.a
-              href="#api-preview"
+              href="#features"
               whileHover={{ scale: 1.03 }}
               whileTap={{ scale: 0.97 }}
               className="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
             >
               <Code className="w-5 h-5 text-gray-400" />
-              <span>View API Docs</span>
+              <span>{t?.hero?.ctaSecondary || 'View API Docs'}</span>
             </motion.a>
           </motion.div>
         </motion.div>
@@ -310,34 +334,43 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
               {/* Tabs */}
               <div className="flex gap-2 p-1 bg-gray-50 rounded-lg border border-gray-100 self-end mb-6">
                 <button
-                  onClick={() => setActiveTab('identity')}
+                  onClick={() => {
+                    setActiveTab('identity');
+                    setVerifiedState(false);
+                  }}
                   className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                     activeTab === 'identity'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Identity & ID
+                  {tabData.identity.title}
                 </button>
                 <button
-                  onClick={() => setActiveTab('invoice')}
+                  onClick={() => {
+                    setActiveTab('invoice');
+                    setVerifiedState(false);
+                  }}
                   className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     activeTab === 'invoice'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Invoice & PO
+                  {tabData.invoice.title}
                 </button>
                 <button
-                  onClick={() => setActiveTab('legal')}
+                  onClick={() => {
+                    setActiveTab('legal');
+                    setVerifiedState(false);
+                  }}
                   className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     activeTab === 'legal'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
                       : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
-                  Legal Contracts
+                  {tabData.legal.title}
                 </button>
               </div>
 
@@ -352,16 +385,23 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
                 <h3 className="text-gray-800 font-medium text-base mb-1">
                   Awaiting Document Upload: {tabData[activeTab].title}
                 </h3>
-                <p className="text-sm text-gray-500 max-w-xs mb-4">
-                  Drop a sample ID card or passport here to see instant AI extraction & fraud checks.
+                <p className="text-sm text-gray-500 max-w-md mb-2">
+                  {tabData[activeTab].details}
+                </p>
+                <p className="text-xs text-gray-400 mb-4">
+                  Drop a sample ID card, invoice, or contract here to see instant AI extraction & fraud checks.
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <span className="px-3 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-xs">
                     Sample: {tabData[activeTab].filename}
                   </span>
-                  <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700">
-                    Confidence: {tabData[activeTab].score}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                    activeTab === 'invoice'
+                      ? 'bg-amber-50 text-amber-800 border-amber-300'
+                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                  }`}>
+                    Score: {tabData[activeTab].score}
                   </span>
                 </div>
               </div>
