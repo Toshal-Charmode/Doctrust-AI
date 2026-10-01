@@ -58,7 +58,7 @@ export function Footer({ currentLang: propLang, onSelectLang: propSelectLang, on
   ];
 
   return (
-    <footer className="bg-white border-t border-gray-200 text-gray-600 text-xs">
+    <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200/80 text-gray-600 text-xs relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-12">
         {/* Top Callout & Quick Action */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-12 border-b border-gray-100">
