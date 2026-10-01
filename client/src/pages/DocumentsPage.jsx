@@ -6,13 +6,16 @@ import { StatusBadge, DocumentTypeBadge } from '../components/ui/Badge';
 import EmptyState from '../components/ui/EmptyState';
 import {
   Search,
+  Filter,
   Trash2,
   RefreshCw,
   ExternalLink,
   GitCompare,
   UploadCloud,
+  FileText,
   CheckSquare,
   Square,
+  Sparkles,
 } from 'lucide-react';
 
 const DOC_TYPES = [
@@ -56,7 +59,7 @@ export function DocumentsPage() {
         setDocuments(res.data.documents || []);
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to load documents', 'error');
+      showToast(err.response?.data?.message || 'Failed to fetch documents', 'error');
     } finally {
       setLoading(false);
     }
@@ -71,9 +74,9 @@ export function DocumentsPage() {
     fetchDocuments();
   };
 
-  const handleToggleSelect = (docId) => {
+  const handleToggleSelect = (id) => {
     setSelectedDocIds((prev) =>
-      prev.includes(docId) ? prev.filter((id) => id !== docId) : [...prev, docId]
+      prev.includes(id) ? prev.filter((dId) => dId !== id) : [...prev, id]
     );
   };
 
@@ -85,26 +88,27 @@ export function DocumentsPage() {
     }
   };
 
-  const handleDelete = async (docId, name) => {
+  const handleDelete = async (id, name) => {
     if (!window.confirm(`Are you sure you want to delete "${name}"?`)) return;
+
     try {
-      const res = await documentApi.delete(docId);
-      showToast(res.message || 'Document deleted', 'success');
-      setDocuments((prev) => prev.filter((d) => d.id !== docId));
-      setSelectedDocIds((prev) => prev.filter((id) => id !== docId));
+      await documentApi.delete(id);
+      showToast('Document deleted successfully', 'success');
+      setDocuments((prev) => prev.filter((d) => d.id !== id));
+      setSelectedDocIds((prev) => prev.filter((dId) => dId !== id));
     } catch (err) {
-      showToast(err.response?.data?.message || 'Delete failed', 'error');
+      showToast(err.response?.data?.message || 'Failed to delete document', 'error');
     }
   };
 
-  const handleReprocess = async (docId, name) => {
+  const handleReprocess = async (id, name) => {
     try {
-      setReprocessingId(docId);
-      const res = await documentApi.reprocess(docId);
-      showToast(res.message || 'Document re-extracted successfully!', 'success');
+      setReprocessingId(id);
+      await documentApi.reprocess(id);
+      showToast(`Document "${name}" reprocessed with Gemini AI`, 'success');
       fetchDocuments();
     } catch (err) {
-      showToast(err.response?.data?.message || 'Re-extraction failed', 'error');
+      showToast(err.response?.data?.message || 'Reprocessing failed', 'error');
     } finally {
       setReprocessingId(null);
     }
@@ -112,40 +116,40 @@ export function DocumentsPage() {
 
   const handleCompareSelected = () => {
     if (selectedDocIds.length < 2) {
-      showToast('Select at least 2 documents to compare (e.g. PO + Invoice)', 'info');
+      showToast('Please select at least 2 documents to compare.', 'warning');
       return;
     }
     navigate(`/validation?docs=${selectedDocIds.join(',')}`);
   };
 
   return (
-    <div className="space-y-6 max-w-7xl mx-auto">
+    <div className="space-y-6">
       {/* Title & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Documents Repository</h1>
-          <p className="text-xs text-slate-500 mt-0.5 font-medium">
+          <h1 className="text-2xl font-bold tracking-tight text-white">Documents Repository</h1>
+          <p className="text-xs text-slate-400 mt-0.5">
             Search, filter, manage, and select procurement documents for 3-way match validation.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           {selectedDocIds.length >= 2 && (
             <button
               onClick={handleCompareSelected}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#EEF8CD] hover:bg-[#e4f0ba] text-slate-800 border border-[#d8e8a8] text-xs font-bold shadow-xs transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-md shadow-blue-500/20 transition-all cursor-pointer animate-in fade-in"
             >
-              <GitCompare className="w-4 h-4 text-emerald-700" />
+              <GitCompare className="w-4 h-4" />
               <span>Compare Selected ({selectedDocIds.length})</span>
             </button>
           )}
 
           <Link
             to="/upload"
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] hover:opacity-95 text-slate-900 text-xs font-extrabold shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-all"
           >
             <UploadCloud className="w-4 h-4" />
-            <span>Upload Document</span>
+            <span>Upload</span>
           </Link>
         </div>
       </div>
@@ -153,13 +157,13 @@ export function DocumentsPage() {
       {/* Search & Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <form onSubmit={handleSearchSubmit} className="flex-1 relative">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by filename, vendor name, or document number..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-white border border-[#EAE5DC] focus:border-[#FFC5AA] focus:ring-2 focus:ring-[#FFC5AA]/20 text-xs text-slate-800 placeholder-slate-400 outline-none transition-all shadow-2xs"
+            placeholder="Search by filename, vendor name, or document/PO number..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs text-slate-100 placeholder-slate-500 outline-none transition-all"
           />
         </form>
 
@@ -167,7 +171,7 @@ export function DocumentsPage() {
           <select
             value={selectedType}
             onChange={(e) => setSelectedType(e.target.value)}
-            className="px-3 py-2.5 rounded-2xl bg-white border border-[#EAE5DC] text-xs font-semibold text-slate-700 focus:border-[#FFC5AA] outline-none transition-all shadow-2xs"
+            className="px-3 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 focus:border-cyan-500 outline-none transition-all"
           >
             {DOC_TYPES.map((t) => (
               <option key={t.value} value={t.value}>
@@ -179,7 +183,7 @@ export function DocumentsPage() {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2.5 rounded-2xl bg-white border border-[#EAE5DC] text-xs font-semibold text-slate-700 focus:border-[#FFC5AA] outline-none transition-all shadow-2xs"
+            className="px-3 py-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-300 focus:border-cyan-500 outline-none transition-all"
           >
             {DOC_STATUSES.map((s) => (
               <option key={s.value} value={s.value}>
@@ -190,7 +194,7 @@ export function DocumentsPage() {
 
           <button
             onClick={fetchDocuments}
-            className="p-2.5 rounded-2xl bg-white border border-[#EAE5DC] text-slate-500 hover:text-slate-800 transition-colors shadow-2xs cursor-pointer"
+            className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-400 hover:text-white transition-colors"
             title="Refresh"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -200,8 +204,8 @@ export function DocumentsPage() {
 
       {/* Documents Table */}
       {loading ? (
-        <div className="p-12 text-center text-xs text-slate-400 animate-pulse">
-          Loading procurement documents...
+        <div className="p-12 text-center text-xs text-slate-500 animate-pulse">
+          Loading documents...
         </div>
       ) : documents.length === 0 ? (
         <EmptyState
@@ -211,19 +215,19 @@ export function DocumentsPage() {
           actionLink="/upload"
         />
       ) : (
-        <div className="rounded-3xl border border-[#EAE5DC] bg-white shadow-xs overflow-hidden">
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 backdrop-blur-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-[#F0EBE1] bg-[#FAF9F6] text-slate-500 font-bold">
+                <tr className="border-b border-slate-800 bg-slate-950/40 text-slate-400 font-semibold">
                   <th className="py-3.5 pl-4 pr-2 w-10">
                     <button
                       onClick={handleSelectAll}
-                      className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                      className="text-slate-400 hover:text-white"
                       title="Select all"
                     >
                       {selectedDocIds.length === documents.length && documents.length > 0 ? (
-                        <CheckSquare className="w-4 h-4 text-emerald-600" />
+                        <CheckSquare className="w-4 h-4 text-cyan-400" />
                       ) : (
                         <Square className="w-4 h-4" />
                       )}
@@ -238,7 +242,7 @@ export function DocumentsPage() {
                   <th className="py-3.5 pr-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#F0EBE1]">
+              <tbody className="divide-y divide-slate-800/60">
                 {documents.map((doc) => {
                   const isSelected = selectedDocIds.includes(doc.id);
                   const isReprocessing = reprocessingId === doc.id;
@@ -246,17 +250,17 @@ export function DocumentsPage() {
                   return (
                     <tr
                       key={doc.id}
-                      className={`hover:bg-[#FAF9F6] transition-colors ${
-                        isSelected ? 'bg-[#EEF8CD]/20' : ''
+                      className={`hover:bg-slate-800/30 transition-colors ${
+                        isSelected ? 'bg-blue-950/15' : ''
                       }`}
                     >
                       <td className="py-3 pl-4 pr-2">
                         <button
                           onClick={() => handleToggleSelect(doc.id)}
-                          className="text-slate-400 hover:text-slate-700 cursor-pointer"
+                          className="text-slate-400 hover:text-white"
                         >
                           {isSelected ? (
-                            <CheckSquare className="w-4 h-4 text-emerald-600" />
+                            <CheckSquare className="w-4 h-4 text-cyan-400" />
                           ) : (
                             <Square className="w-4 h-4" />
                           )}
@@ -266,12 +270,12 @@ export function DocumentsPage() {
                       <td className="py-3 px-3">
                         <Link
                           to={`/documents/${doc.id}`}
-                          className="font-bold text-slate-900 hover:text-[#c25050] transition-colors block truncate max-w-xs"
+                          className="font-medium text-slate-100 hover:text-cyan-400 transition-colors block truncate max-w-xs"
                           title={doc.original_name}
                         >
                           {doc.original_name}
                         </Link>
-                        <span className="text-[10px] text-slate-400 font-medium">
+                        <span className="text-[10px] text-slate-500">
                           {new Date(doc.created_at).toLocaleDateString()} • {(doc.file_size / 1024).toFixed(0)} KB
                         </span>
                       </td>
@@ -281,10 +285,10 @@ export function DocumentsPage() {
                       </td>
 
                       <td className="py-3 px-3">
-                        <span className="text-slate-800 font-semibold truncate block max-w-[160px]">
+                        <span className="text-slate-300 font-medium truncate block max-w-[160px]">
                           {doc.vendor_name || '—'}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-mono">
+                        <span className="text-[10px] text-slate-500 font-mono">
                           {doc.document_number ? `Doc #${doc.document_number}` : ''}
                           {doc.po_number && doc.po_number !== doc.document_number
                             ? ` (PO: ${doc.po_number})`
@@ -298,25 +302,25 @@ export function DocumentsPage() {
 
                       <td className="py-3 px-3">
                         <div className="flex items-center gap-1.5 font-mono">
-                          <div className="w-12 h-2 rounded-full bg-[#EAE5DC] overflow-hidden">
+                          <div className="w-12 h-1.5 rounded-full bg-slate-800 overflow-hidden">
                             <div
                               className={`h-full rounded-full ${
                                 doc.confidence >= 0.85
-                                  ? 'bg-[#BBF1D2] border border-[#9ae6b8]'
+                                  ? 'bg-emerald-500'
                                   : doc.confidence >= 0.70
-                                  ? 'bg-[#FFC5AA] border border-[#f0af90]'
-                                  : 'bg-[#FF9D9D] border border-[#f28585]'
+                                  ? 'bg-amber-500'
+                                  : 'bg-rose-500'
                               }`}
                               style={{ width: `${Math.round(doc.confidence * 100)}%` }}
                             />
                           </div>
-                          <span className="text-[11px] font-bold text-slate-600">
+                          <span className="text-[11px] text-slate-400">
                             {Math.round(doc.confidence * 100)}%
                           </span>
                         </div>
                       </td>
 
-                      <td className="py-3 px-3 font-mono font-bold text-slate-900">
+                      <td className="py-3 px-3 font-mono font-semibold text-slate-200">
                         {doc.total ? `$${Number(doc.total).toLocaleString()} ${doc.currency || 'USD'}` : '—'}
                       </td>
 
@@ -324,7 +328,7 @@ export function DocumentsPage() {
                         <div className="flex items-center justify-end gap-1.5">
                           <Link
                             to={`/documents/${doc.id}`}
-                            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-[#FAF9F6] transition-colors"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-colors"
                             title="View Document Details"
                           >
                             <ExternalLink className="w-4 h-4" />
@@ -333,7 +337,7 @@ export function DocumentsPage() {
                           <button
                             onClick={() => handleReprocess(doc.id, doc.original_name)}
                             disabled={isReprocessing}
-                            className="p-1.5 rounded-xl text-slate-400 hover:text-emerald-700 hover:bg-[#FAF9F6] transition-colors disabled:opacity-50 cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-colors disabled:opacity-50"
                             title="Reprocess with Gemini AI"
                           >
                             <RefreshCw className={`w-4 h-4 ${isReprocessing ? 'animate-spin' : ''}`} />
@@ -341,7 +345,7 @@ export function DocumentsPage() {
 
                           <button
                             onClick={() => handleDelete(doc.id, doc.original_name)}
-                            className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                             title="Delete Document"
                           >
                             <Trash2 className="w-4 h-4" />

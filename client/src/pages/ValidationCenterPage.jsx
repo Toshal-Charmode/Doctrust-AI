@@ -130,33 +130,33 @@ export function ValidationCenterPage() {
       {/* Title & Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-            <Scale className="w-6 h-6 text-[#c25050]" />
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            <Scale className="w-6 h-6 text-cyan-400" />
             <span>Cross-Document Validation Center</span>
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-0.5">
+          <p className="text-xs text-slate-400 mt-0.5">
             Automated 2-way and 3-way match reconciliation between Purchase Orders, Invoices, and Delivery Receipts.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center p-1 rounded-2xl bg-white border border-[#EAE5DC] text-xs shadow-2xs">
+        <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800 text-xs">
           <button
             onClick={() => setActiveTab('compare')}
-            className={`px-4 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
               activeTab === 'compare'
-                ? 'bg-[#EEF8CD] text-slate-900 border border-[#d8e8a8] shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-blue-600/20 text-cyan-300 font-semibold border border-cyan-500/30'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             Run Validation
           </button>
           <button
             onClick={() => setActiveTab('history')}
-            className={`px-4 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-lg font-medium transition-all ${
               activeTab === 'history'
-                ? 'bg-[#EEF8CD] text-slate-900 border border-[#d8e8a8] shadow-2xs'
-                : 'text-slate-500 hover:text-slate-900'
+                ? 'bg-blue-600/20 text-cyan-300 font-semibold border border-cyan-500/30'
+                : 'text-slate-400 hover:text-white'
             }`}
           >
             Past Validations ({pastValidations.length})
@@ -167,7 +167,7 @@ export function ValidationCenterPage() {
       {activeTab === 'compare' ? (
         <div className="space-y-6">
           {/* Document Selectors Workspace */}
-          <div className="rounded-3xl border border-[#EAE5DC] bg-white p-6 shadow-xs space-y-5">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-sm space-y-4">
             <h2 className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
               <GitCompare className="w-4 h-4 text-cyan-400" />
               <span>Select Documents for 3-Way Match Audit</span>

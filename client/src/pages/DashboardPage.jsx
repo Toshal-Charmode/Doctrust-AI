@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { dashboardApi, demoApi } from '../services/dashboardApi';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { StatusBadge, DocumentTypeBadge } from '../components/ui/Badge';
+import EmptyState from '../components/ui/EmptyState';
 import {
   Files,
   FileCheck,
@@ -18,22 +18,12 @@ import {
   ExternalLink,
   ChevronRight,
   RefreshCw,
-  FileText,
-  DollarSign,
-  CheckCircle2,
-  Receipt,
-  Truck,
-  Eye,
-  Building2,
-  Calendar,
 } from 'lucide-react';
 
 export function DashboardPage() {
-  const { user } = useAuth();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isSeeding, setIsSeeding] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('ALL');
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -59,7 +49,7 @@ export function DashboardPage() {
     try {
       setIsSeeding(true);
       const res = await demoApi.seedDemo();
-      showToast(res.message || 'Sample procurement documents loaded!', 'success');
+      showToast(res.message || 'Demo procurement documents loaded!', 'success');
       fetchDashboard();
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to seed demo documents', 'error');
@@ -67,6 +57,23 @@ export function DashboardPage() {
       setIsSeeding(false);
     }
   };
+
+  if (loading && !data) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        <div className="h-8 bg-slate-900 rounded-lg w-1/4"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="h-28 bg-slate-900 rounded-2xl border border-slate-800"></div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 h-72 bg-slate-900 rounded-2xl border border-slate-800"></div>
+          <div className="h-72 bg-slate-900 rounded-2xl border border-slate-800"></div>
+        </div>
+      </div>
+    );
+  }
 
   const stats = data?.stats || {
     totalDocuments: 0,
@@ -77,398 +84,339 @@ export function DashboardPage() {
   };
 
   const hasDocuments = stats.totalDocuments > 0;
-  const rawRecent = data?.recentDocuments || [];
-
-  // Realistic sample procurement items if DB is fresh
-  const sampleDocs = [
-    {
-      id: 'po-1024',
-      name: 'Purchase_Order_PO-1024.pdf',
-      docNum: '#PO-1024',
-      title: 'PO - High-Torque Actuators',
-      vendor: 'Apex Industrial Supply',
-      type: 'PURCHASE_ORDER',
-      amount: '$50,000.00',
-      status: 'VERIFIED',
-      time: '10m ago',
-      confidence: 0.998,
-    },
-    {
-      id: 'inv-9042',
-      name: 'Invoice_Acme_INV-9042.pdf',
-      docNum: '#INV-9042',
-      title: 'Invoice - Actuator Unit Shipment',
-      vendor: 'Apex Industrial Supply',
-      type: 'INVOICE',
-      amount: '$55,000.00',
-      status: 'REVIEW_REQUIRED',
-      time: '25m ago',
-      confidence: 0.652,
-    },
-    {
-      id: 'dr-5512',
-      name: 'Delivery_Receipt_DR-5512.pdf',
-      docNum: '#DR-5512',
-      title: 'Delivery Receipt - Warehouse Bay 4',
-      vendor: 'LogiTrans Global',
-      type: 'DELIVERY_RECEIPT',
-      amount: '$50,000.00',
-      status: 'VERIFIED',
-      time: '1h ago',
-      confidence: 0.994,
-    },
-    {
-      id: 'po-1025',
-      name: 'PO_Dell_Workstations_2026.pdf',
-      docNum: '#PO-1025',
-      title: 'PO - Engineer Workstation Laptops',
-      vendor: 'Dell Enterprise Direct',
-      type: 'PURCHASE_ORDER',
-      amount: '$14,250.00',
-      status: 'VERIFIED',
-      time: '3h ago',
-      confidence: 0.989,
-    },
-  ];
-
-  const recentDocuments = rawRecent.length > 0 ? rawRecent.map((doc, idx) => ({
-    id: doc.id,
-    name: doc.originalName || doc.filename,
-    docNum: `#${doc.id.slice(0, 7)}`,
-    title: doc.originalName?.replace('.pdf', '') || 'Procurement Document',
-    vendor: doc.metadata?.vendor || 'Authorized Supplier',
-    type: doc.documentType,
-    amount: doc.metadata?.total ? `$${Number(doc.metadata.total).toLocaleString('en-US', { minimumFractionDigits: 2 })}` : '$50,000.00',
-    status: doc.status === 'PROCESSED' ? 'VERIFIED' : doc.status,
-    time: 'Recent',
-    confidence: doc.confidenceScore || 0.98,
-  })) : sampleDocs;
-
-  const filteredDocs = filterStatus === 'ALL'
-    ? recentDocuments
-    : filterStatus === 'VERIFIED'
-    ? recentDocuments.filter(d => d.status === 'VERIFIED' || d.status === 'PROCESSED')
-    : filterStatus === 'REVIEW'
-    ? recentDocuments.filter(d => d.status === 'REVIEW_REQUIRED' || d.status === 'FAILED')
-    : recentDocuments;
+  const recentDocuments = data?.recentDocuments || [];
+  const attentionRequired = data?.attentionRequired || [];
+  const processingActivity = data?.processingActivity || [];
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
-      {/* 1. Header with Humanized Greeting & Quick Action Buttons */}
+    <div className="space-y-8">
+      {/* Header with Title and Quick Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-            <span>Welcome back, {user?.name?.split(' ')[0] || 'Pari'}! 👋</span>
+          <h1 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            <span>Procurement Intelligence Dashboard</span>
           </h1>
-          <p className="text-xs text-slate-500 font-medium mt-1">
-            Your human-friendly Procurement & Document Intelligence Overview
+          <p className="text-xs text-slate-400 mt-0.5">
+            Real-time document verification, extraction metrics, and discrepancy monitoring.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
             onClick={fetchDashboard}
-            className="p-2.5 rounded-2xl bg-white border border-[#EAE5DC] text-slate-500 hover:text-slate-800 hover:border-slate-300 shadow-xs transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-slate-900 border border-slate-800 text-slate-400 hover:text-white hover:border-slate-700 transition-colors"
             title="Refresh statistics"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
-          <button
-            onClick={handleSeedDemo}
-            disabled={isSeeding}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#EEF8CD] hover:bg-[#e4f0ba] text-slate-800 border border-[#d8e8a8] text-xs font-bold shadow-xs transition-all cursor-pointer disabled:opacity-50"
-          >
-            <Zap className={`w-3.5 h-3.5 ${isSeeding ? 'animate-spin' : 'text-amber-600'}`} />
-            <span>{isSeeding ? 'Loading Demo...' : 'Load Sample Data'}</span>
-          </button>
+          {!hasDocuments && (
+            <button
+              onClick={handleSeedDemo}
+              disabled={isSeeding}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-cyan-950/40 hover:bg-cyan-900/40 text-cyan-300 border border-cyan-500/30 text-xs font-semibold shadow-sm transition-all"
+            >
+              <Zap className={`w-3.5 h-3.5 ${isSeeding ? 'animate-spin' : 'text-amber-400'}`} />
+              <span>{isSeeding ? 'Loading Demo...' : 'Load Sample Documents'}</span>
+            </button>
+          )}
 
           <Link
             to="/upload"
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-[#FF9D9D] via-[#FFC5AA] to-[#FF9D9D] hover:opacity-95 text-slate-900 text-xs font-extrabold shadow-sm transition-all"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold shadow-md shadow-blue-600/20 transition-all"
           >
-            <UploadCloud className="w-4 h-4 text-slate-900" />
+            <UploadCloud className="w-4 h-4" />
             <span>Upload New Documents</span>
           </Link>
         </div>
       </div>
 
-      {/* 2. 4 Primary Pastel Overview Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {/* Card 1: Total Documents Processed (Soft Coral Gradient: #FF9D9D -> #FFC5AA) */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-[#FF9D9D]/40 via-[#FFC5AA]/30 to-white border border-[#FF9D9D]/50 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-700">Total Documents</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-rose-700 border border-[#FF9D9D]/40 shadow-2xs">
-              +12% this week
-            </span>
+      {/* 5 Real Metric Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        {/* Metric 1: Total Documents */}
+        <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700/80 transition-all duration-200">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-medium">Total Documents</span>
+            <div className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">
+              <Files className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {stats.totalDocuments > 0 ? stats.totalDocuments : 3412}
+          <div className="text-2xl font-bold text-white tracking-tight">
+            {stats.totalDocuments}
           </div>
-          <div className="mt-2 text-xs font-semibold text-rose-900/80 flex items-center gap-1">
-            <Files className="w-3.5 h-3.5 text-rose-600" />
-            <span>Processed across POs & Invoices</span>
-          </div>
+          <span className="text-[11px] text-slate-500 mt-1 block">In repository</span>
         </div>
 
-        {/* Card 2: Awaiting Action / Need Review (Warm Peach: #FFC5AA -> #EEF8CD) */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-[#FFC5AA]/40 via-[#EEF8CD]/40 to-white border border-[#FFC5AA]/60 shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-700">Awaiting Action</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-amber-800 border border-[#FFC5AA]/50 shadow-2xs">
-              Review
-            </span>
+        {/* Metric 2: Processed Documents */}
+        <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700/80 transition-all duration-200">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-medium">Processed</span>
+            <div className="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-400">
+              <Sparkles className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {stats.documentsNeedingReview > 0 ? stats.documentsNeedingReview : 1}
+          <div className="text-2xl font-bold text-white tracking-tight">
+            {stats.processedDocuments}
           </div>
-          <div className="mt-2 text-xs font-semibold text-amber-900/80 flex items-center gap-1">
-            <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-            <span>Price / Quantity variances flagged</span>
-          </div>
+          <span className="text-[11px] text-slate-500 mt-1 block">Analyzed by AI</span>
         </div>
 
-        {/* Card 3: Total Spend / Analyzed (Light Lemon Cream: #EEF8CD -> White) */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-[#EEF8CD]/60 via-[#EEF8CD]/30 to-white border border-[#d8e8a8] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-700">Total Spend Analyzed</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-emerald-800 border border-[#d8e8a8] shadow-2xs">
-              USD
-            </span>
+        {/* Metric 3: Verified Documents */}
+        <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700/80 transition-all duration-200">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-medium">Verified</span>
+            <div className="p-1.5 rounded-lg bg-emerald-500/10 text-emerald-400">
+              <FileCheck className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            $145.8K
+          <div className="text-2xl font-bold text-emerald-400 tracking-tight">
+            {stats.verifiedDocuments}
           </div>
-          <div className="mt-2 text-xs font-semibold text-emerald-900/80 flex items-center gap-1">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-700" />
-            <span>100% Deterministic Math Audit</span>
-          </div>
+          <span className="text-[11px] text-slate-500 mt-1 block">High confidence (≥80%)</span>
         </div>
 
-        {/* Card 4: Verified Invoices (Pastel Mint: #BBF1D2 -> White) */}
-        <div className="p-5 rounded-3xl bg-gradient-to-br from-[#BBF1D2]/50 via-[#BBF1D2]/25 to-white border border-[#9ae6b8] shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-slate-700">Verified Invoices</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/80 text-emerald-900 border border-[#9ae6b8] shadow-2xs">
-              99.4%
-            </span>
+        {/* Metric 4: Documents Needing Review */}
+        <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700/80 transition-all duration-200">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-medium">Need Review</span>
+            <div className="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
+            </div>
           </div>
-          <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            {stats.verifiedDocuments > 0 ? stats.verifiedDocuments : 2109}
+          <div className="text-2xl font-bold text-amber-400 tracking-tight">
+            {stats.documentsNeedingReview}
           </div>
-          <div className="mt-2 text-xs font-semibold text-emerald-950 flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-700" />
-            <span>3-Way Reconciled & Approved</span>
+          <span className="text-[11px] text-slate-500 mt-1 block">Attention required</span>
+        </div>
+
+        {/* Metric 5: Discrepancies Detected */}
+        <div className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 hover:border-slate-700/80 transition-all duration-200">
+          <div className="flex items-center justify-between text-slate-400 mb-2">
+            <span className="text-xs font-medium">Discrepancies</span>
+            <div className="p-1.5 rounded-lg bg-rose-500/10 text-rose-400">
+              <ShieldAlert className="w-4 h-4" />
+            </div>
           </div>
+          <div className="text-2xl font-bold text-rose-400 tracking-tight">
+            {stats.discrepanciesDetected}
+          </div>
+          <span className="text-[11px] text-slate-500 mt-1 block">Identified variances</span>
         </div>
       </div>
 
-      {/* 3. Main Dashboard Layout: Left Recent Documents Grid & Right Activity Stream */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left 2 Columns: Recent Documents with Filter Tabs */}
-        <div className="lg:col-span-2 space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <span>Recent Documents</span>
-            </h2>
-
-            {/* Filter Pills */}
-            <div className="flex items-center gap-1.5 p-1 bg-white border border-[#EAE5DC] rounded-2xl shadow-2xs text-xs font-bold">
-              {['ALL', 'VERIFIED', 'REVIEW'].map((status) => (
-                <button
-                  key={status}
-                  onClick={() => setFilterStatus(status)}
-                  className={`px-3 py-1 rounded-xl transition-all cursor-pointer ${
-                    filterStatus === status
-                      ? 'bg-[#EEF8CD] text-slate-900 border border-[#d8e8a8] shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-900'
-                  }`}
-                >
-                  {status === 'ALL' ? 'All' : status === 'VERIFIED' ? 'Verified' : 'Action Required'}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Document Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredDocs.map((doc) => (
-              <div
-                key={doc.id}
-                className="p-4 rounded-3xl bg-white border border-[#EAE5DC] hover:border-[#FFC5AA] shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3">
-                      {/* PDF Red Icon Badge */}
-                      <div className="w-12 h-12 rounded-2xl bg-[#FF9D9D]/20 border border-[#FF9D9D]/40 flex items-center justify-center text-rose-600 font-extrabold text-xs shadow-2xs shrink-0">
-                        PDF
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-extrabold text-slate-400 block uppercase tracking-wider">
-                          {doc.docNum}
-                        </span>
-                        <h3 className="text-xs font-extrabold text-slate-900 line-clamp-1">
-                          {doc.title}
-                        </h3>
-                        <p className="text-[11px] text-slate-500 font-medium">
-                          {doc.vendor}
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="text-right shrink-0">
-                      <div className="text-xs font-black text-slate-900">{doc.amount}</div>
-                      <div className="text-[10px] text-slate-400 font-medium">{doc.time}</div>
-                    </div>
+      {!hasDocuments ? (
+        <EmptyState
+          title="No procurement documents uploaded yet"
+          description="Upload commercial invoices, purchase orders, or delivery receipts to begin automated classification, extraction, and 3-way match validation."
+          actionText="Upload Documents"
+          actionLink="/upload"
+          onSeedDemo={handleSeedDemo}
+        />
+      ) : (
+        <>
+          {/* Attention Required Banner Section */}
+          {attentionRequired.length > 0 && (
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-amber-950/20 via-slate-900/50 to-slate-900/50 border border-amber-500/30">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+                    <AlertTriangle className="w-4 h-4" />
                   </div>
-                </div>
-
-                <div className="pt-3 border-t border-[#F0EBE1] flex items-center justify-between">
                   <div>
-                    {doc.status === 'VERIFIED' ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#BBF1D2] text-emerald-950 border border-[#9ae6b8]">
-                        <CheckCircle2 className="w-3 h-3 text-emerald-700" />
-                        Verified
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FF9D9D] text-rose-950 border border-[#f28585]">
-                        <AlertTriangle className="w-3 h-3 text-rose-800" />
-                        Action Required
-                      </span>
-                    )}
+                    <h2 className="text-sm font-bold text-white">
+                      Attention Required ({attentionRequired.length} documents)
+                    </h2>
+                    <p className="text-[11px] text-slate-400">
+                      Documents with quantity variances, amount discrepancies, missing fields, or low extraction confidence
+                    </p>
                   </div>
+                </div>
 
+                <Link
+                  to="/validation"
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                >
+                  <span>Go to Validation Center</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {attentionRequired.map((doc) => (
                   <Link
-                    to={`/validation`}
-                    className="px-3.5 py-1 rounded-xl bg-[#FAF9F6] hover:bg-[#EEF8CD] text-slate-800 hover:border-[#d8e8a8] border border-[#EAE5DC] text-[11px] font-bold shadow-2xs transition-all flex items-center gap-1"
+                    key={doc.id}
+                    to={`/documents/${doc.id}`}
+                    className="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800 hover:border-amber-500/40 hover:bg-slate-900/70 transition-all duration-200 group"
                   >
-                    <span>{doc.status === 'VERIFIED' ? 'View Details' : 'Review'}</span>
-                    <ChevronRight className="w-3 h-3" />
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <div className="min-w-0">
+                        <span className="text-xs font-semibold text-slate-200 group-hover:text-cyan-300 truncate block">
+                          {doc.originalName}
+                        </span>
+                        <span className="text-[11px] text-slate-400">
+                          {doc.vendorName || 'Vendor not detected'} • Doc #{doc.documentNumber || 'N/A'}
+                        </span>
+                      </div>
+                      <StatusBadge status={doc.status} />
+                    </div>
+
+                    <div className="space-y-1 mt-2.5 pt-2.5 border-t border-slate-800/80">
+                      {doc.reasons?.map((reason, rIdx) => (
+                        <p key={rIdx} className="text-[11px] text-amber-400/90 flex items-start gap-1.5">
+                          <span className="text-amber-500 font-bold">•</span>
+                          <span>{reason}</span>
+                        </p>
+                      ))}
+                    </div>
                   </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="pt-2">
-            <Link
-              to="/documents"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 hover:text-[#c25050] transition-colors"
-            >
-              <span>View all procurement documents in repository</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
-          </div>
-        </div>
-
-        {/* Right 1 Column: Activity Timeline & Vendor Breakdown */}
-        <div className="space-y-6">
-          {/* Document Activity Card */}
-          <div className="p-5 rounded-3xl bg-white border border-[#EAE5DC] shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900">Document Activity</h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EEF8CD] text-slate-800 border border-[#d8e8a8]">
-                Today
-              </span>
-            </div>
-
-            <div className="space-y-3.5 text-xs">
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#BBF1D2] flex items-center justify-center text-emerald-800 shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold leading-tight">
-                    <strong className="text-slate-950">Pari</strong> verified Invoice #INV-9042
-                  </p>
-                  <span className="text-[10px] text-slate-400">10 minutes ago</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#FFC5AA] flex items-center justify-center text-amber-900 shrink-0 mt-0.5">
-                  <Clock className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold leading-tight">
-                    System matched PO #PO-1024 with Delivery Receipt
-                  </p>
-                  <span className="text-[10px] text-slate-400">25 minutes ago</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#FF9D9D] flex items-center justify-center text-rose-900 shrink-0 mt-0.5">
-                  <AlertTriangle className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold leading-tight">
-                    Price variance flagged on Apex Industrial Invoice
-                  </p>
-                  <span className="text-[10px] text-slate-400">1 hour ago</span>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="w-6 h-6 rounded-full bg-[#BBF1D2] flex items-center justify-center text-emerald-800 shrink-0 mt-0.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-slate-800 font-semibold leading-tight">
-                    PO #PO-1025 approved by Buyer Lead
-                  </p>
-                  <span className="text-[10px] text-slate-400">3 hours ago</span>
-                </div>
+                ))}
               </div>
             </div>
-          </div>
+          )}
 
-          {/* Clean Vendor Performance Breakdown Card */}
-          <div className="p-5 rounded-3xl bg-gradient-to-br from-[#FAF9F6] via-white to-[#EEF8CD]/30 border border-[#EAE5DC] shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-                <Building2 className="w-4 h-4 text-emerald-700" />
-                <span>Vendor Accuracy</span>
-              </h3>
-              <span className="text-[11px] font-extrabold text-emerald-700">99.1% avg</span>
+          {/* Main Grid: Recent Documents Table + Processing Activity */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left 2 Cols: Recent Documents Table */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-sm font-bold text-white">Recent Documents</h3>
+                  <p className="text-[11px] text-slate-400">
+                    Latest procurement files processed by DocuTrust AI
+                  </p>
+                </div>
+                <Link
+                  to="/documents"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-400 hover:text-cyan-300"
+                >
+                  <span>View All ({stats.totalDocuments})</span>
+                  <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-800 text-slate-400 font-semibold">
+                      <th className="pb-3 pl-2">Filename</th>
+                      <th className="pb-3">Type</th>
+                      <th className="pb-3">Status</th>
+                      <th className="pb-3">Confidence</th>
+                      <th className="pb-3">Total</th>
+                      <th className="pb-3 pr-2 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800/60">
+                    {recentDocuments.map((doc) => (
+                      <tr key={doc.id} className="hover:bg-slate-800/30 transition-colors">
+                        <td className="py-3 pl-2 pr-4 font-medium text-slate-200">
+                          <Link
+                            to={`/documents/${doc.id}`}
+                            className="hover:text-cyan-400 transition-colors truncate max-w-[180px] sm:max-w-[240px] block"
+                            title={doc.originalName}
+                          >
+                            {doc.originalName}
+                          </Link>
+                          <span className="text-[10px] text-slate-500 block">
+                            {new Date(doc.createdAt).toLocaleDateString()}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4">
+                          <DocumentTypeBadge type={doc.documentType} />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <StatusBadge status={doc.status} />
+                        </td>
+                        <td className="py-3 pr-4">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-12 h-1.5 rounded-full bg-slate-800 overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${
+                                  doc.confidence >= 0.85
+                                    ? 'bg-emerald-500'
+                                    : doc.confidence >= 0.70
+                                    ? 'bg-amber-500'
+                                    : 'bg-rose-500'
+                                }`}
+                                style={{ width: `${Math.round(doc.confidence * 100)}%` }}
+                              />
+                            </div>
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              {Math.round(doc.confidence * 100)}%
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 pr-4 font-mono font-medium text-slate-200">
+                          {doc.total ? `$${Number(doc.total).toLocaleString()}` : '—'}
+                        </td>
+                        <td className="py-3 pr-2 text-right">
+                          <Link
+                            to={`/documents/${doc.id}`}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 text-[11px] font-medium transition-colors"
+                          >
+                            <span>Details</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
-            <div className="space-y-2 pt-1 text-xs">
+            {/* Right 1 Col: Processing Activity Timeline */}
+            <div className="rounded-2xl border border-slate-800 bg-slate-900/40 p-5 backdrop-blur-sm flex flex-col justify-between">
               <div>
-                <div className="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                  <span>Apex Industrial Supply</span>
-                  <span className="font-bold text-slate-900">99.8%</span>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Processing Activity</h3>
+                    <p className="text-[11px] text-slate-400">Audit logs & AI runs</p>
+                  </div>
+                  <Clock className="w-4 h-4 text-slate-500" />
                 </div>
-                <div className="w-full bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
-                  <div className="bg-[#BBF1D2] border border-[#9ae6b8] h-full rounded-full" style={{ width: '99.8%' }}></div>
+
+                <div className="space-y-4">
+                  {processingActivity.length === 0 ? (
+                    <p className="text-xs text-slate-500">No activity logged yet.</p>
+                  ) : (
+                    processingActivity.map((act, idx) => (
+                      <div key={idx} className="flex items-start gap-3 text-xs">
+                        <div className="mt-1 w-2 h-2 rounded-full bg-cyan-400 shrink-0 shadow-sm shadow-cyan-400/50" />
+                        <div className="min-w-0 flex-1">
+                          <span className="font-semibold text-slate-200 truncate block">
+                            {act.title}
+                          </span>
+                          <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
+                            <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300">
+                              {act.status}
+                            </span>
+                            <span>{new Date(act.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
 
-              <div>
-                <div className="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                  <span>Dell Enterprise Direct</span>
-                  <span className="font-bold text-slate-900">98.9%</span>
-                </div>
-                <div className="w-full bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
-                  <div className="bg-[#FFC5AA] border border-[#f0af90] h-full rounded-full" style={{ width: '98.9%' }}></div>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-[11px] font-semibold text-slate-700 mb-1">
-                  <span>LogiTrans Global</span>
-                  <span className="font-bold text-slate-900">99.4%</span>
-                </div>
-                <div className="w-full bg-[#EAE5DC] h-2 rounded-full overflow-hidden">
-                  <div className="bg-[#BBF1D2] border border-[#9ae6b8] h-full rounded-full" style={{ width: '99.4%' }}></div>
-                </div>
+              {/* Quick AI query callout */}
+              <div className="mt-6 pt-4 border-t border-slate-800">
+                <Link
+                  to="/chat"
+                  className="flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-900/20 to-cyan-900/20 border border-cyan-500/20 hover:border-cyan-500/40 transition-all text-xs"
+                >
+                  <div className="flex items-center gap-2 text-cyan-300 font-semibold">
+                    <Sparkles className="w-4 h-4 text-cyan-400" />
+                    <span>Ask AI About Your Documents</span>
+                  </div>
+                  <ArrowRight className="w-3.5 h-3.5 text-cyan-400" />
+                </Link>
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 }
