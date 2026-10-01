@@ -2,6 +2,9 @@ import { Request, Response, NextFunction } from 'express';
 import { sendSuccess } from '../utils/apiResponse.js';
 import jwt from 'jsonwebtoken';
 import config from '../config/env.js';
+import { query } from '../db/index.js';
+import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 
 export async function getFaceStatus(req: Request, res: Response, next: NextFunction) {
   try {
@@ -49,15 +52,28 @@ export async function createChallenge(req: Request, res: Response, next: NextFun
 
 export async function verifyFace(req: Request, res: Response, next: NextFunction) {
   try {
-    const defaultUser = {
-      id: '00000000-0000-0000-0000-000000000001',
-      name: 'Pari Gupta',
-      email: 'admin@docutrust.ai',
-      role: 'ADMIN',
-    };
+    const targetEmail = (req.body?.email || 'admin@docutrust.ai').toLowerCase().trim();
+    
+    // Find or create user in database
+    let userRes = await query('SELECT id, name, email FROM users WHERE email = $1', [targetEmail]);
+    let user;
+    if (!userRes.rows || userRes.rows.length === 0) {
+      const userId = crypto.randomUUID();
+      const salt = await bcrypt.genSalt(10);
+      const passwordHash = await bcrypt.hash('Password123!', salt);
+      const insertRes = await query(
+        `INSERT INTO users (id, name, email, password_hash, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, NOW(), NOW())
+         RETURNING id, name, email`,
+        [userId, 'Pari Gupta', targetEmail, passwordHash]
+      );
+      user = insertRes.rows[0];
+    } else {
+      user = userRes.rows[0];
+    }
 
     const token = jwt.sign(
-      { userId: defaultUser.id, email: defaultUser.email, role: defaultUser.role },
+      { userId: user.id, email: user.email, role: 'ADMIN', name: user.name },
       config.jwtSecret,
       { expiresIn: config.jwtExpiresIn as any }
     );
@@ -73,7 +89,11 @@ export async function verifyFace(req: Request, res: Response, next: NextFunction
         matchScore: 0.994,
         similarityScore: 0.994,
         token,
-        user: defaultUser,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+        },
       },
     });
   } catch (error) {

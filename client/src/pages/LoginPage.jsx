@@ -42,7 +42,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/dashboard', { replace: true });
     }
 
     const params = new URLSearchParams(location.search);
@@ -78,7 +78,7 @@ export function LoginPage() {
           localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
         }
         showToast('Welcome back to DocuTrust AI!', 'success');
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -115,7 +115,7 @@ export function LoginPage() {
               localStorage.setItem('docutrust_user', JSON.stringify(user));
             }
             showToast('Biometric identity confirmed. Access granted.', 'success');
-            setTimeout(() => navigate('/'), 900);
+            setTimeout(() => navigate('/dashboard'), 600);
           }
         }
       } catch (err) {
@@ -146,7 +146,7 @@ export function LoginPage() {
           localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
         }
         showToast('Biometric identity confirmed! Access granted.', 'success');
-        setTimeout(() => navigate('/'), 900);
+        setTimeout(() => navigate('/dashboard'), 600);
       } else {
         const remaining = res.attemptsLeft !== undefined ? res.attemptsLeft : pendingChallenge.attemptsLeft - 1;
         setPendingChallenge((prev) => ({ ...prev, attemptsLeft: remaining }));
@@ -190,7 +190,7 @@ export function LoginPage() {
           localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
         }
         showToast('Authenticated via password fallback.', 'success');
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Fallback authentication failed.');

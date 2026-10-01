@@ -77,8 +77,8 @@ export function RegisterPage() {
         callback({ success: true });
         showToast('Face recognized! Welcome to DocuTrust AI.', 'success');
         setTimeout(() => {
-          navigate('/');
-        }, 900);
+          navigate('/dashboard');
+        }, 600);
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Biometric enrollment failed. Please hold still.';
@@ -91,7 +91,7 @@ export function RegisterPage() {
 
   const handleSkipToDashboard = () => {
     showToast('Welcome to DocuTrust AI!', 'info');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (

@@ -14,11 +14,13 @@ import {
 } from 'lucide-react';
 
 import { useLanguage } from '../../context/LanguageContext';
+import { useAuth } from '../../context/AuthContext';
 
 export { LANGUAGES } from '../../context/translations';
 
 export function Navbar({ onOpenUpload, currentLang: propLang, onSelectLang: propSelectLang }) {
   const { currentLang: ctxLang, setLanguage, t, languages } = useLanguage();
+  const { isAuthenticated, user } = useAuth();
   const currentLang = propLang || ctxLang;
   const onSelectLang = propSelectLang || setLanguage;
 
@@ -146,22 +148,33 @@ export function Navbar({ onOpenUpload, currentLang: propLang, onSelectLang: prop
               </AnimatePresence>
             </div>
 
-            {/* Sign In text link */}
-            <Link
-              to="/login"
-              className="text-xs sm:text-sm font-semibold text-gray-700 hover:text-[#111827] px-3 py-2 rounded-xl hover:bg-gray-100/70 transition-colors"
-            >
-              {t.nav.signIn}
-            </Link>
+            {/* Auth Button or Dashboard Link */}
+            {isAuthenticated ? (
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
+              >
+                <span>Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className="text-xs sm:text-sm font-semibold text-gray-700 hover:text-[#111827] px-3 py-2 rounded-xl hover:bg-gray-100/70 transition-colors"
+                >
+                  {t.nav.signIn}
+                </Link>
 
-            {/* Primary 'Start Verifying' CTA Button */}
-            <button
-              onClick={onOpenUpload}
-              className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
-            >
-              <span>{t.nav.startVerifying}</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1.5 px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-blue-500/20 hover:shadow-blue-500/35 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-150 cursor-pointer"
+                >
+                  <span>{t.nav.startVerifying}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile menu hamburger button */}
