@@ -20,6 +20,14 @@ export function sendSuccess<T = any>(
   });
 }
 
+export function sendCreated<T = any>(
+  res: Response,
+  data?: T,
+  message: string = 'Created'
+): Response {
+  return sendSuccess(res, data, message, 201);
+}
+
 export function sendError(
   res: Response,
   message: string = 'An error occurred',

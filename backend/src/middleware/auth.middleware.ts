@@ -49,4 +49,5 @@ export async function requireAuth(req: Request, res: Response, next: NextFunctio
   }
 }
 
+export const authenticate = requireAuth;
 export default requireAuth;
