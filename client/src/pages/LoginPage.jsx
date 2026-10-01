@@ -74,15 +74,14 @@ export function LoginPage() {
         showToast('Password verified. Please verify your facial identity.', 'info');
       } else if (res.success && res.data?.token) {
         // Direct authenticated login
-        localStorage.setItem('docutrust_token', res.data.token);
-        localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
         if (setUserSession) {
           setUserSession(res.data.user, res.data.token);
         } else {
-          window.location.href = '/dashboard';
+          localStorage.setItem('docutrust_token', res.data.token);
+          localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
         }
         showToast('Welcome back to DocuTrust AI!', 'success');
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Login failed. Please check your credentials.');
@@ -113,10 +112,14 @@ export function LoginPage() {
             const token = verifyRes.data?.token || verifyRes.token || 'demo_token';
             const user = verifyRes.data?.user || { name: 'Pari Gupta', email: targetEmail, role: 'ADMIN' };
             callback({ success: true, similarityScore: 0.994 });
-            localStorage.setItem('docutrust_token', token);
-            localStorage.setItem('docutrust_user', JSON.stringify(user));
-            showToast('Biometric identity confirmed. Universal access granted.', 'success');
-            setTimeout(() => navigate('/dashboard'), 1000);
+            if (setUserSession) {
+              setUserSession(user, token);
+            } else {
+              localStorage.setItem('docutrust_token', token);
+              localStorage.setItem('docutrust_user', JSON.stringify(user));
+            }
+            showToast('Biometric identity confirmed. Access granted.', 'success');
+            setTimeout(() => navigate('/'), 900);
           }
         }
       } catch (err) {
@@ -140,10 +143,14 @@ export function LoginPage() {
 
       if (res.verified && res.data?.token) {
         callback({ success: true, similarityScore: res.data.similarityScore });
-        localStorage.setItem('docutrust_token', res.data.token);
-        localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
+        if (setUserSession) {
+          setUserSession(res.data.user, res.data.token);
+        } else {
+          localStorage.setItem('docutrust_token', res.data.token);
+          localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
+        }
         showToast('Biometric identity confirmed! Access granted.', 'success');
-        setTimeout(() => navigate('/dashboard'), 1400);
+        setTimeout(() => navigate('/'), 900);
       } else {
         const remaining = res.attemptsLeft !== undefined ? res.attemptsLeft : pendingChallenge.attemptsLeft - 1;
         setPendingChallenge((prev) => ({ ...prev, attemptsLeft: remaining }));

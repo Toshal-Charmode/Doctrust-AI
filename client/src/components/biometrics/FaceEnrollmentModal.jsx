@@ -10,11 +10,13 @@ import {
   Camera,
   Fingerprint,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import FaceScannerUI from './FaceScannerUI';
 import faceAuthApi from '../../services/faceAuthApi';
 import { useToast } from '../../context/ToastContext';
 
 export function FaceEnrollmentModal({ isOpen, onClose, onEnrolled, isReenroll = false }) {
+  const navigate = useNavigate();
   const [consentGiven, setConsentGiven] = useState(true);
   const [password, setPassword] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -57,11 +59,12 @@ export function FaceEnrollmentModal({ isOpen, onClose, onEnrolled, isReenroll = 
       if (res.success) {
         setSuccess(true);
         callback({ success: true });
-        showToast(isReenroll ? 'Face profile re-enrolled successfully!' : 'Face login activated successfully!', 'success');
+        showToast(isReenroll ? 'Face profile updated successfully!' : 'Face login activated! Redirecting to Home...', 'success');
         setTimeout(() => {
           if (onEnrolled) onEnrolled();
           onClose();
-        }, 1500);
+          navigate('/');
+        }, 1100);
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Biometric enrollment failed. Please ensure your face is well lit.';
