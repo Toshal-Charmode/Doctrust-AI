@@ -10,8 +10,6 @@ import {
   User,
   Loader2,
   FileText,
-  HelpCircle,
-  ExternalLink,
 } from 'lucide-react';
 
 const SUGGESTED_PROMPTS = [
@@ -33,7 +31,6 @@ export function ChatPage() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
-  const [groundedDocs, setGroundedDocs] = useState([]);
   const messagesEndRef = useRef(null);
   const location = useLocation();
   const { showToast } = useToast();
@@ -47,7 +44,6 @@ export function ChatPage() {
   }, [messages, loading]);
 
   useEffect(() => {
-    // If a document was passed via ?doc=123, pre-fill query
     const params = new URLSearchParams(location.search);
     const docId = params.get('doc');
     if (docId) {
@@ -59,26 +55,31 @@ export function ChatPage() {
     const query = (textToSend || input).trim();
     if (!query || loading) return;
 
-    const userMsg = { role: 'user', content: query };
-    setMessages((prev) => [...prev, userMsg]);
+    const userMessage = { role: 'user', content: query };
+    setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setLoading(true);
 
     try {
       const res = await chatApi.sendMessage(query);
-      if (res.success) {
-        setMessages((prev) => [...prev, res.data.message]);
-        if (res.data.groundedDocs?.length > 0) {
-          setGroundedDocs(res.data.groundedDocs);
-        }
+      if (res.success && res.data?.answer) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: res.data.answer,
+            groundedCount: res.data.groundedDocuments?.length || 0,
+          },
+        ]);
+      } else {
+        throw new Error('No answer received from AI service');
       }
     } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to process AI chat query', 'error');
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: 'Sorry, I encountered an error retrieving answers from your documents. Please verify your connection or try again.',
+          content: 'I could not find matching documents or connect to the AI engine. Please verify the backend status or try another query.',
         },
       ]);
     } finally {
@@ -96,33 +97,33 @@ export function ChatPage() {
   return (
     <div className="max-w-4xl mx-auto flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="pb-4 border-b border-slate-800 flex items-center justify-between shrink-0">
+      <div className="pb-4 border-b border-[#EAE5DC] flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            <MessageSquareText className="w-5 h-5 text-cyan-400" />
+          <h1 className="text-xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+            <MessageSquareText className="w-5 h-5 text-[#c25050]" />
             <span>AI Knowledge Discovery Chat</span>
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 font-medium mt-0.5">
             Grounded procurement conversational search across all uploaded documents and audits.
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-[11px] text-cyan-400 font-medium">
-          <Sparkles className="w-3.5 h-3.5" />
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EEF8CD] border border-[#d8e8a8] text-[11px] text-emerald-900 font-bold">
+          <Sparkles className="w-3.5 h-3.5 text-emerald-700" />
           <span>Strictly Grounded RAG</span>
         </div>
       </div>
 
       {/* Suggested Prompt Pills */}
       <div className="py-3 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
-        <span className="text-[11px] font-semibold text-slate-500 whitespace-nowrap pl-1">
+        <span className="text-[11px] font-bold text-slate-400 whitespace-nowrap pl-1">
           Suggestions:
         </span>
         {SUGGESTED_PROMPTS.map((prompt, idx) => (
           <button
             key={idx}
             onClick={() => handleSendMessage(prompt)}
-            className="px-3 py-1 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-[11px] text-slate-300 hover:text-cyan-300 whitespace-nowrap transition-colors cursor-pointer"
+            className="px-3 py-1 rounded-2xl bg-white hover:bg-[#EEF8CD] border border-[#EAE5DC] hover:border-[#d8e8a8] text-[11px] font-semibold text-slate-700 whitespace-nowrap transition-all shadow-2xs cursor-pointer"
           >
             {prompt}
           </button>
@@ -140,10 +141,10 @@ export function ChatPage() {
             >
               {/* Avatar */}
               <div
-                className={`w-8 h-8 rounded-xl shrink-0 flex items-center justify-center shadow-md ${
+                className={`w-8 h-8 rounded-2xl shrink-0 flex items-center justify-center shadow-xs ${
                   isUser
-                    ? 'bg-gradient-to-tr from-blue-600 to-cyan-600 text-white'
-                    : 'bg-slate-900 border border-slate-800 text-cyan-400'
+                    ? 'bg-gradient-to-tr from-[#FF9D9D] to-[#FFC5AA] text-slate-900 font-bold text-xs'
+                    : 'bg-white border border-[#EAE5DC] text-[#c25050]'
                 }`}
               >
                 {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -151,10 +152,10 @@ export function ChatPage() {
 
               {/* Message Bubble */}
               <div
-                className={`max-w-[85%] rounded-2xl p-4 text-xs leading-relaxed ${
+                className={`max-w-[85%] rounded-3xl p-4 text-xs leading-relaxed ${
                   isUser
-                    ? 'bg-blue-600 text-white rounded-tr-none'
-                    : 'bg-slate-900/70 border border-slate-800/80 text-slate-200 rounded-tl-none shadow-sm'
+                    ? 'bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] text-slate-900 font-bold rounded-tr-none shadow-xs'
+                    : 'bg-white border border-[#EAE5DC] text-slate-800 rounded-tl-none shadow-xs'
                 }`}
               >
                 <div className="whitespace-pre-wrap font-sans space-y-2">
@@ -167,11 +168,11 @@ export function ChatPage() {
 
         {loading && (
           <div className="flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-slate-900 border border-slate-800 text-cyan-400 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-2xl bg-white border border-[#EAE5DC] text-[#c25050] flex items-center justify-center">
               <Bot className="w-4 h-4" />
             </div>
-            <div className="bg-slate-900/70 border border-slate-800 rounded-2xl rounded-tl-none p-4 text-xs text-slate-400 flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-cyan-400" />
+            <div className="bg-white border border-[#EAE5DC] rounded-3xl rounded-tl-none p-4 text-xs text-slate-500 font-medium flex items-center gap-2 shadow-xs">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#c25050]" />
               <span>Searching repository & formulating grounded answer...</span>
             </div>
           </div>
@@ -180,36 +181,25 @@ export function ChatPage() {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Box */}
-      <div className="pt-3 border-t border-slate-800 shrink-0">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSendMessage();
-          }}
-          className="flex items-center gap-2 bg-slate-900/70 border border-slate-800 rounded-2xl p-2 focus-within:border-cyan-500 transition-all"
-        >
+      {/* Input Area */}
+      <div className="pt-3 border-t border-[#EAE5DC] shrink-0">
+        <div className="flex items-center gap-2 bg-white border border-[#EAE5DC] rounded-3xl p-2 shadow-xs focus-within:border-[#FFC5AA] focus-within:ring-2 focus-within:ring-[#FFC5AA]/20 transition-all">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask about purchase orders, invoices, discrepancies, or vendors..."
-            className="flex-1 bg-transparent px-3 py-1.5 text-xs text-slate-100 placeholder-slate-500 outline-none"
+            placeholder="Ask anything about invoices, purchase orders, or vendors..."
+            className="flex-1 bg-transparent px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 outline-none"
           />
-
           <button
-            type="submit"
+            onClick={() => handleSendMessage()}
             disabled={!input.trim() || loading}
-            className="p-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-sm transition-all disabled:opacity-40 cursor-pointer"
+            className="p-2.5 rounded-2xl bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] hover:opacity-95 text-slate-900 shadow-2xs transition-all cursor-pointer disabled:opacity-40"
           >
             <Send className="w-4 h-4" />
           </button>
-        </form>
-
-        <p className="text-[10px] text-slate-500 text-center mt-2">
-          Responses are strictly grounded in your active documents. DocuTrust AI does not hallucinate facts.
-        </p>
+        </div>
       </div>
     </div>
   );
