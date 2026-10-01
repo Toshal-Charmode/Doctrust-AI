@@ -7,33 +7,62 @@
   
   body {
     font-family: var(--font-sans);
-    background-color: #08090d;
-    color: #f3f4f6;
+    background-color: #ffffff;
+    color: #111827;
     overflow-x: hidden;
   }
 
-  /* Custom scrollbar with subtle violet thumb */
+  /* Custom clean scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #0d0e14;
+    background: #f8fafc;
   }
   ::-webkit-scrollbar-thumb {
-    background: #27273a;
+    background: #cbd5e1;
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #6d28d9;
+    background: #94a3b8;
   }
 }
 
 /* Subtle AI glow utilities */
-.glow-purple {
-  box-shadow: 0 0 50px -10px rgba(147, 51, 234, 0.25);
+.glow-blue {
+  box-shadow: 0 0 50px -10px rgba(37, 99, 235, 0.25);
 }
 
-.glow-purple-sm {
-  box-shadow: 0 0 25px -5px rgba(168, 85, 247, 0.2);
+.glow-blue-sm {
+  box-shadow: 0 0 25px -5px rgba(59, 130, 246, 0.2);
 }
+
+/* Infinite Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-reverse {
+  display: flex;
+  width: max-content;
+  animation: marquee-reverse 35s linear infinite;
+}
+
+.pause-hover:hover .animate-marquee,
+.pause-hover:hover .animate-marquee-reverse {
+  animation-play-state: paused;
+}
+
