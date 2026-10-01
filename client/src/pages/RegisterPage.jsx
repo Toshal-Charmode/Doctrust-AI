@@ -75,10 +75,10 @@ export function RegisterPage() {
       if (res.success) {
         setEnrollSuccess(true);
         callback({ success: true });
-        showToast('Face login successfully enabled for your account!', 'success');
+        showToast('Face recognized! Welcome to DocuTrust AI.', 'success');
         setTimeout(() => {
-          navigate('/dashboard');
-        }, 1500);
+          navigate('/');
+        }, 900);
       }
     } catch (err) {
       const msg = err.response?.data?.message || 'Biometric enrollment failed. Please hold still.';
@@ -90,8 +90,8 @@ export function RegisterPage() {
   };
 
   const handleSkipToDashboard = () => {
-    showToast('You can set up Face Login at any time in Profile Settings.', 'info');
-    navigate('/dashboard');
+    showToast('Welcome to DocuTrust AI!', 'info');
+    navigate('/');
   };
 
   return (

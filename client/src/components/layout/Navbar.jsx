@@ -104,26 +104,25 @@ export function Navbar() {
             </a>
           </div>
         ) : (
-          <div className="hidden md:flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-xs">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
-              </span>
-              <span className="text-slate-300 font-medium">Gemini 2.5 Vision</span>
-              <span className="text-slate-600">|</span>
-              <span className="text-purple-400 font-medium">3-Way Match Active</span>
-            </div>
-
-            <button
-              onClick={handleSeedDemo}
-              disabled={isDemoLoading}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/15 hover:bg-purple-600/25 text-purple-300 border border-purple-500/30 text-xs font-semibold shadow-sm transition-all duration-200 cursor-pointer disabled:opacity-50"
-              title="Load realistic sample procurement documents with 3-way match validation"
-            >
-              <Zap className={`w-3.5 h-3.5 ${isDemoLoading ? 'animate-spin' : 'text-amber-400'}`} />
-              <span>{isDemoLoading ? 'Loading Demo...' : 'Load Sample Data'}</span>
-            </button>
+          <div className="hidden md:flex items-center gap-4 text-xs font-medium text-slate-300">
+            <Link to="/" className="hover:text-purple-300 transition-colors">
+              Home
+            </Link>
+            <Link to="/dashboard" className="hover:text-purple-300 transition-colors">
+              Dashboard
+            </Link>
+            <Link to="/documents" className="hover:text-purple-300 transition-colors">
+              Documents
+            </Link>
+            <Link to="/upload" className="hover:text-purple-300 transition-colors">
+              Upload
+            </Link>
+            <Link to="/validation" className="hover:text-purple-300 transition-colors">
+              Validation
+            </Link>
+            <Link to="/settings" className="hover:text-purple-300 transition-colors">
+              Settings
+            </Link>
           </div>
         )}
 
