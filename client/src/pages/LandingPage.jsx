@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import Navbar, { LANGUAGES } from '../components/doctrust/Navbar';
+import Navbar from '../components/doctrust/Navbar';
 import HeroSection from '../components/doctrust/HeroSection';
 import CoreFeatures from '../components/doctrust/CoreFeatures';
 import InfiniteMarquee from '../components/doctrust/InfiniteMarquee';
@@ -10,11 +10,12 @@ import Footer from '../components/doctrust/Footer';
 import UploadModal from '../components/doctrust/UploadModal';
 import AIChatWidget from '../components/doctrust/AIChatWidget';
 import Toast from '../components/doctrust/Toast';
+import { useLanguage } from '../context/LanguageContext';
 
 export function LandingPage() {
+  const { currentLang, setLanguage, t } = useLanguage();
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [currentLang, setCurrentLang] = useState(LANGUAGES[0]);
   const [activeToast, setActiveToast] = useState(null);
 
   const showToast = (toastObj) => {
@@ -22,10 +23,10 @@ export function LandingPage() {
   };
 
   const handleLanguageChange = (lang) => {
-    setCurrentLang(lang);
+    setLanguage(lang);
     showToast({
-      title: 'Language Updated',
-      message: `Interface language switched to ${lang.name} (${lang.native})`,
+      title: t.nav.selectLang || 'Language Updated',
+      message: `${lang.name} (${lang.native})`,
       type: 'info',
       tag: 'Localization',
     });
@@ -39,6 +40,7 @@ export function LandingPage() {
       tag: 'AI Verified',
     });
   };
+
 
   return (
     <div className="min-h-screen bg-white text-[#111827] font-sans antialiased selection:bg-blue-600/15 selection:text-blue-700 flex flex-col relative overflow-x-hidden">
