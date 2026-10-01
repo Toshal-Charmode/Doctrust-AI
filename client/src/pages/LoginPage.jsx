@@ -10,8 +10,7 @@ import {
   Zap,
   Loader2,
   KeyRound,
-  Shield,
-  User,
+  FileCheck2,
   Fingerprint,
   CheckCircle2,
 } from 'lucide-react';
@@ -30,7 +29,7 @@ export function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
 
   // Biometric challenge state
-  const [pendingChallenge, setPendingChallenge] = useState(null); // { challengeId, expiresAt, attemptsLeft }
+  const [pendingChallenge, setPendingChallenge] = useState(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [fallbackMode, setFallbackMode] = useState(false);
   const [fallbackPassword, setFallbackPassword] = useState('');
@@ -43,7 +42,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/dashboard', { replace: true });
+      navigate('/', { replace: true });
     }
 
     const params = new URLSearchParams(location.search);
@@ -68,12 +67,10 @@ export function LoginPage() {
       const res = await authApi.login({ email, password });
 
       if (res.requiresFaceAuth && res.data?.challengeId) {
-        // Step 2: Transition to Face ID challenge
         setPendingChallenge(res.data);
         setLoginMethod('face');
         showToast('Password verified. Please verify your facial identity.', 'info');
       } else if (res.success && res.data?.token) {
-        // Direct authenticated login
         if (setUserSession) {
           setUserSession(res.data.user, res.data.token);
         } else {
@@ -93,7 +90,6 @@ export function LoginPage() {
   // Handle live biometric capture verification
   const handleFaceVerify = async (capturedImageBase64, callback) => {
     if (!pendingChallenge?.challengeId) {
-      // Direct Face ID login with universal access
       try {
         setIsVerifying(true);
         const targetEmail = email || 'admin@docutrust.ai';
@@ -173,7 +169,6 @@ export function LoginPage() {
     }
   };
 
-  // Fallback authentication using password
   const handleFallbackSubmit = async (e) => {
     e.preventDefault();
     if (!fallbackPassword) return;
@@ -188,10 +183,14 @@ export function LoginPage() {
       });
 
       if (res.success && res.data?.token) {
-        localStorage.setItem('docutrust_token', res.data.token);
-        localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
+        if (setUserSession) {
+          setUserSession(res.data.user, res.data.token);
+        } else {
+          localStorage.setItem('docutrust_token', res.data.token);
+          localStorage.setItem('docutrust_user', JSON.stringify(res.data.user));
+        }
         showToast('Authenticated via password fallback.', 'success');
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err) {
       setErrorMsg(err.response?.data?.message || 'Fallback authentication failed.');
@@ -207,37 +206,38 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-slate-950 px-4 py-12 selection:bg-cyan-500/20 selection:text-cyan-300">
-      <LiquidBackground variant="dark" />
+    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden bg-[#FAF9F6] px-4 py-12 selection:bg-[#FFC5AA]/40 selection:text-slate-900">
+      {/* Warm Pastel Ambient Liquid Background */}
+      <LiquidBackground variant="pastel" />
 
       {/* Header Logo */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="mb-6 flex flex-col items-center gap-2"
+        className="mb-6 flex flex-col items-center gap-1.5"
       >
-        <Link to="/" className="inline-flex items-center gap-3 group">
-          <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 via-blue-600 to-cyan-400 p-[1px] shadow-lg shadow-cyan-500/25">
-            <div className="w-full h-full bg-slate-950 rounded-[15px] flex items-center justify-center">
-              <ShieldCheck className="w-6 h-6 text-cyan-400" strokeWidth={2.4} />
+        <Link to="/" className="inline-flex items-center gap-2.5 group">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#FF9D9D] via-[#FFC5AA] to-[#EEF8CD] p-[1.5px] shadow-sm group-hover:scale-105 transition-all">
+            <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
+              <FileCheck2 className="w-5 h-5 text-[#e06d6d]" />
             </div>
           </div>
-          <span className="text-2xl font-extrabold tracking-tight text-white">
-            DocTrust <span className="text-cyan-400 bg-cyan-950/40 px-2 py-0.5 rounded-lg text-xs ml-0.5 border border-cyan-500/30">AI</span>
+          <span className="text-2xl font-extrabold tracking-tight text-slate-900">
+            DocuTrust <span className="text-[11px] font-bold px-1.5 py-0.2 rounded-md bg-[#EEF8CD] text-emerald-900 border border-[#d8e8a8]">AI</span>
           </span>
         </Link>
-        <p className="text-xs text-slate-400">Intelligent Document Verification & Biometric Trust Vault</p>
+        <p className="text-xs text-slate-500 font-medium">Intelligent Procurement Verification & Biometric Trust</p>
       </motion.div>
 
-      {/* Main Auth Card */}
+      {/* Main Pastel Auth Card */}
       <motion.div
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.45, ease: 'easeOut' }}
-        className="w-full max-w-md bg-slate-900/80 backdrop-blur-2xl rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.6)] border border-slate-800/90 overflow-hidden relative z-10"
+        className="w-full max-w-md bg-white/90 backdrop-blur-2xl rounded-3xl shadow-xl border border-[#EAE5DC] overflow-hidden relative z-10"
       >
-        {/* Toggle Header (Standard vs Face ID) */}
-        <div className="flex p-1.5 bg-slate-950/80 backdrop-blur-md m-3 rounded-2xl border border-slate-800/80">
+        {/* Toggle Header (Standard vs Face ID) with Warm Peach Background */}
+        <div className="flex p-1.5 bg-[#FFC5AA]/25 m-4 rounded-2xl border border-[#FFC5AA]/50">
           <button
             type="button"
             onClick={() => {
@@ -246,30 +246,30 @@ export function LoginPage() {
             }}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               loginMethod === 'standard' && !fallbackMode
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Lock className="w-3.5 h-3.5" /> Standard Login
+            <Lock className="w-3.5 h-3.5 text-[#c25050]" /> Standard Login
           </button>
           <button
             type="button"
             onClick={() => setLoginMethod('face')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               loginMethod === 'face'
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <ScanFace className="w-3.5 h-3.5" /> Face ID
+            <ScanFace className="w-3.5 h-3.5 text-[#c25050]" /> Face ID
           </button>
         </div>
 
         {/* Content Area */}
-        <div className="p-7 pt-4">
+        <div className="p-7 pt-2">
           {errorMsg && (
-            <div className="mb-5 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
-              <span className="font-semibold">Notice:</span>
+            <div className="mb-4 p-3 rounded-2xl bg-[#FF9D9D]/20 border border-[#FF9D9D] text-rose-950 text-xs font-medium flex items-center gap-2">
+              <span className="font-bold">Notice:</span>
               <span>{errorMsg}</span>
             </div>
           )}
@@ -284,21 +284,21 @@ export function LoginPage() {
                 exit={{ opacity: 0, x: -16 }}
                 transition={{ duration: 0.2 }}
               >
-                <div className="mb-5 text-center">
-                  <h2 className="text-xl font-bold text-white mb-1">Welcome Back</h2>
-                  <p className="text-xs text-slate-400">Enter your credentials to access the secure audit vault.</p>
+                <div className="mb-4 text-center">
+                  <h2 className="text-xl font-extrabold text-slate-900 mb-1">Welcome Back</h2>
+                  <p className="text-xs text-slate-500 font-medium">Enter your credentials to access the secure audit vault.</p>
                 </div>
 
                 {/* Quick Demo Fill Button */}
-                <div className="mb-5 p-2.5 rounded-xl bg-cyan-950/20 border border-cyan-500/20 flex items-center justify-between">
+                <div className="mb-4 p-2.5 rounded-2xl bg-[#EEF8CD] border border-[#d8e8a8] flex items-center justify-between">
                   <div className="flex items-center gap-1.5">
-                    <Zap className="w-3.5 h-3.5 text-amber-400" />
-                    <span className="text-[11px] font-semibold text-cyan-300">Auditor Evaluation Mode</span>
+                    <Zap className="w-3.5 h-3.5 text-amber-600" />
+                    <span className="text-[11px] font-bold text-slate-800">Auditor Evaluation Mode</span>
                   </div>
                   <button
                     type="button"
                     onClick={fillDemoCredentials}
-                    className="text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 underline cursor-pointer"
+                    className="text-[11px] font-bold text-[#c25050] hover:underline cursor-pointer"
                   >
                     Auto-fill demo user
                   </button>
@@ -306,34 +306,34 @@ export function LoginPage() {
 
                 <form onSubmit={handleStandardLogin} className="space-y-4">
                   <div className="space-y-1">
-                    <label className="text-xs font-semibold text-slate-300 ml-1">Work Email</label>
+                    <label className="text-xs font-bold text-slate-700 ml-1">Work Email</label>
                     <div className="relative">
-                      <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="email"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="admin@docutrust.ai"
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FAF9F6] border border-[#EAE5DC] rounded-2xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:border-[#FFC5AA] focus:ring-2 focus:ring-[#FFC5AA]/20 outline-none transition-all"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center ml-1">
-                      <label className="text-xs font-semibold text-slate-300">Password</label>
-                      <a href="#" className="text-[11px] font-medium text-cyan-400 hover:text-cyan-300">Forgot?</a>
+                      <label className="text-xs font-bold text-slate-700">Password</label>
+                      <a href="#" className="text-[11px] font-bold text-[#c25050] hover:underline">Forgot?</a>
                     </div>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="password"
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none transition-all"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FAF9F6] border border-[#EAE5DC] rounded-2xl text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:border-[#FFC5AA] focus:ring-2 focus:ring-[#FFC5AA]/20 outline-none transition-all"
                       />
                     </div>
                   </div>
@@ -341,11 +341,11 @@ export function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 transition-all cursor-pointer disabled:opacity-50 mt-2"
+                    className="w-full bg-gradient-to-r from-[#FF9D9D] via-[#FFC5AA] to-[#FF9D9D] hover:opacity-95 text-slate-900 py-3 rounded-2xl font-extrabold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer disabled:opacity-50 mt-2"
                   >
                     {loading ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <Loader2 className="w-4 h-4 animate-spin text-slate-900" />
                         <span>Verifying Credentials...</span>
                       </>
                     ) : (
@@ -357,11 +357,11 @@ export function LoginPage() {
                   </button>
                 </form>
 
-                <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-                  <div className="flex items-center gap-1.5 text-slate-300 font-semibold">
-                    <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" /> End-to-end encrypted
+                <div className="mt-6 pt-4 border-t border-[#F0EBE1] flex items-center justify-between text-xs">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#BBF1D2] text-emerald-950 font-bold text-[11px] border border-[#9ae6b8]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-700" /> End-to-end encrypted
                   </div>
-                  <Link to="/register" className="text-cyan-400 hover:text-cyan-300 font-semibold">
+                  <Link to="/register" className="text-[#c25050] hover:underline font-bold">
                     Create account
                   </Link>
                 </div>
@@ -378,17 +378,10 @@ export function LoginPage() {
                 transition={{ duration: 0.2 }}
                 className="flex flex-col items-center"
               >
-                <div className="mb-4 text-center">
-                  <h2 className="text-xl font-bold text-white mb-0.5">Biometric Identity Check</h2>
-                  <p className="text-xs text-slate-400">Position your face inside the alignment frame to verify.</p>
+                <div className="mb-3 text-center">
+                  <h2 className="text-xl font-extrabold text-slate-900 mb-0.5">Biometric Identity Check</h2>
+                  <p className="text-xs text-slate-500 font-medium">Position your face inside the alignment frame to verify.</p>
                 </div>
-
-                {pendingChallenge && (
-                  <div className="w-full mb-3 px-3 py-1.5 rounded-lg bg-cyan-950/40 border border-cyan-500/30 flex items-center justify-between text-[11px]">
-                    <span className="text-cyan-300 font-medium">Pending Challenge Active</span>
-                    <span className="text-slate-400 font-mono">Attempts: {pendingChallenge.attemptsLeft || 3}</span>
-                  </div>
-                )}
 
                 <FaceScannerUI
                   onVerificationSuccess={handleFaceVerify}
@@ -399,8 +392,8 @@ export function LoginPage() {
                   mode="verify"
                 />
 
-                <div className="mt-4 flex items-center justify-center gap-2 text-[11px] font-medium text-slate-500">
-                  <Fingerprint className="w-3.5 h-3.5 text-cyan-400" /> AES-256-GCM encrypted biometric template
+                <div className="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-500">
+                  <Fingerprint className="w-3.5 h-3.5 text-emerald-700" /> Universal biometric pass active
                 </div>
               </motion.div>
             )}
@@ -415,26 +408,26 @@ export function LoginPage() {
                 transition={{ duration: 0.2 }}
                 className="space-y-4"
               >
-                <div className="text-center mb-4">
-                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center mx-auto mb-2">
+                <div className="text-center mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#EEF8CD] border border-[#d8e8a8] text-amber-800 flex items-center justify-center mx-auto mb-2">
                     <KeyRound className="w-6 h-6" />
                   </div>
-                  <h3 className="text-lg font-bold text-white">Alternative Verification</h3>
-                  <p className="text-xs text-slate-400">Enter your account password to bypass biometric face factor.</p>
+                  <h3 className="text-lg font-extrabold text-slate-900">Alternative Verification</h3>
+                  <p className="text-xs text-slate-500 font-medium">Enter your account password to bypass biometric face factor.</p>
                 </div>
 
                 <form onSubmit={handleFallbackSubmit} className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-slate-300 ml-1">Account Password</label>
+                    <label className="text-xs font-bold text-slate-700 ml-1">Account Password</label>
                     <div className="relative mt-1">
-                      <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                       <input
                         type="password"
                         required
                         value={fallbackPassword}
                         onChange={(e) => setFallbackPassword(e.target.value)}
                         placeholder="••••••••••••"
-                        className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-xs text-slate-100 placeholder:text-slate-500 focus:ring-1 focus:ring-cyan-500 focus:border-cyan-500 outline-none"
+                        className="w-full pl-10 pr-4 py-2.5 bg-[#FAF9F6] border border-[#EAE5DC] rounded-2xl text-xs font-semibold text-slate-800 outline-none focus:border-[#FFC5AA]"
                       />
                     </div>
                   </div>
@@ -442,7 +435,7 @@ export function LoginPage() {
                   <button
                     type="submit"
                     disabled={fallbackLoading}
-                    className="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    className="w-full py-3 rounded-2xl bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] text-slate-900 font-extrabold text-xs shadow-sm transition-all flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {fallbackLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <span>Verify & Access Account</span>}
                   </button>
@@ -450,7 +443,7 @@ export function LoginPage() {
                   <button
                     type="button"
                     onClick={() => setFallbackMode(false)}
-                    className="w-full py-2 text-center text-xs font-semibold text-slate-400 hover:text-slate-200 transition-colors"
+                    className="w-full py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-800 transition-colors"
                   >
                     Back to Face ID Scan
                   </button>
