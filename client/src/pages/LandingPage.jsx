@@ -8,10 +8,12 @@ import Pricing from '../components/doctrust/Pricing';
 import AccordionFAQ from '../components/doctrust/AccordionFAQ';
 import Footer from '../components/doctrust/Footer';
 import UploadModal from '../components/doctrust/UploadModal';
+import AIChatWidget from '../components/doctrust/AIChatWidget';
 import Toast from '../components/doctrust/Toast';
 
 export function LandingPage() {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState(LANGUAGES[0]);
   const [activeToast, setActiveToast] = useState(null);
 
@@ -39,7 +41,7 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white text-[#111827] font-sans antialiased selection:bg-blue-600/15 selection:text-blue-700 flex flex-col">
+    <div className="min-h-screen bg-white text-[#111827] font-sans antialiased selection:bg-blue-600/15 selection:text-blue-700 flex flex-col relative overflow-x-hidden">
       {/* 1. Glassmorphism Sticky Navbar */}
       <Navbar
         onOpenUpload={() => setIsUploadModalOpen(true)}
@@ -47,8 +49,9 @@ export function LandingPage() {
         onSelectLang={handleLanguageChange}
       />
 
+      {/* Main Page Body */}
       <main className="flex-1">
-        {/* 2. Hero Section (Staggered Entrance) */}
+        {/* 2. Hero Section (Staggered Entrance + FloatingDocuments Background Collage + Live Mockup) */}
         <HeroSection
           onOpenUpload={() => setIsUploadModalOpen(true)}
           onShowToast={showToast}
@@ -65,7 +68,7 @@ export function LandingPage() {
           onOpenUpload={() => setIsUploadModalOpen(true)}
         />
 
-        {/* 5. Enterprise-Grade Security Section (Dark Background) */}
+        {/* 5. Enterprise-Grade Security Section (Dark Background, 3 Columns) */}
         <EnterpriseSecurity
           onOpenUpload={() => setIsUploadModalOpen(true)}
         />
@@ -88,11 +91,17 @@ export function LandingPage() {
         onOpenUpload={() => setIsUploadModalOpen(true)}
       />
 
-      {/* Centered Drag-and-Drop File Upload Modal */}
+      {/* Centered Drag-and-Drop File Upload Modal (Spring Animated) */}
       <UploadModal
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         onVerified={handleDocumentVerified}
+      />
+
+      {/* Floating Interactive DocTrust AI Chat Widget */}
+      <AIChatWidget
+        isOpen={isChatOpen}
+        setIsOpen={setIsChatOpen}
       />
 
       {/* Bottom-Right Floating Toast Notification */}

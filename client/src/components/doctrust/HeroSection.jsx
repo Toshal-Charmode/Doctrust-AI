@@ -1,308 +1,311 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import {
-  ArrowRight,
-  ShieldCheck,
   Sparkles,
   UploadCloud,
+  Code,
+  ArrowRight,
   CheckCircle2,
-  Lock,
-  Code2,
+  ScanFace,
   FileText,
-  ScanLine,
-  Zap,
-  Check,
+  FileCheck2,
   RotateCw,
+  FileSpreadsheet,
+  Check,
 } from 'lucide-react';
 
-export function HeroSection({ onOpenUpload, onShowToast }) {
-  const [activePreset, setActivePreset] = useState('identity');
-  const [isScanning, setIsScanning] = useState(false);
-  const [score, setScore] = useState(99.8);
+// Framer Motion Variants for reusable animations
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } }
+};
 
-  const presets = {
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15 }
+  }
+};
+
+// Background Collage Component
+export const FloatingDocuments = () => {
+  return (
+    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none flex justify-center items-center opacity-40">
+      {/* Doc 1 - Left Top */}
+      <motion.div
+        animate={{ y: [0, -20, 0], rotate: [-5, -2, -5] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute top-10 left-[15%] w-48 h-64 bg-white border border-blue-100 rounded-2xl shadow-xl shadow-blue-900/5 blur-[1px] p-4 flex flex-col gap-3"
+      >
+        <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
+          <ScanFace className="text-blue-300 w-6 h-6" />
+        </div>
+        <div className="h-2 w-3/4 bg-gray-100 rounded"></div>
+        <div className="h-2 w-full bg-gray-100 rounded"></div>
+        <div className="h-2 w-5/6 bg-gray-100 rounded"></div>
+        <div className="mt-auto flex justify-between">
+          <div className="h-6 w-16 bg-blue-50 rounded-md"></div>
+          <div className="h-6 w-6 bg-green-50 rounded-full"></div>
+        </div>
+      </motion.div>
+
+      {/* Doc 2 - Right Top */}
+      <motion.div
+        animate={{ y: [0, 25, 0], rotate: [5, 8, 5] }}
+        transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+        className="absolute top-24 right-[10%] w-56 h-72 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-2xl shadow-gray-900/5 p-5 flex flex-col gap-3 scale-90"
+      >
+        <div className="flex justify-between items-start mb-4">
+          <FileText className="text-gray-300 w-10 h-10" />
+          <div className="w-8 h-8 rounded bg-blue-100"></div>
+        </div>
+        <div className="h-3 w-full bg-gray-100 rounded mb-1"></div>
+        <div className="h-3 w-4/5 bg-gray-100 rounded mb-1"></div>
+        <div className="h-3 w-full bg-gray-100 rounded mb-1"></div>
+        <div className="h-3 w-2/3 bg-gray-100 rounded"></div>
+      </motion.div>
+
+      {/* Doc 3 - Center Bottom (Behind Text) */}
+      <motion.div
+        animate={{ y: [0, -15, 0], scale: [1, 1.02, 1] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+        className="absolute top-64 left-[40%] w-72 h-40 bg-blue-50/50 backdrop-blur-md border border-blue-100 rounded-xl shadow-lg p-6 blur-[2px] -z-10"
+      >
+        <div className="flex items-center gap-4 mb-4">
+          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <FileCheck2 className="text-blue-400 w-6 h-6" />
+          </div>
+          <div>
+            <div className="h-4 w-24 bg-white rounded mb-2"></div>
+            <div className="h-2 w-16 bg-white rounded"></div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+export function HeroSection({ onOpenUpload, onShowToast }) {
+  const [activeTab, setActiveTab] = useState('identity');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [verifiedState, setVerifiedState] = useState(false);
+
+  const tabData = {
     identity: {
-      type: 'National Identity / Passport',
-      filename: 'EU_Identity_Card_Scan.pdf',
+      title: 'Identity & ID',
+      filename: 'Sample_Passport_DE_4910.pdf',
+      docType: 'Biometric Passport',
       score: '99.8%',
-      fields: [
-        { label: 'Holder Full Name', val: 'Alexander Vance', status: 'MATCHED' },
-        { label: 'Document Number', val: 'P4882190-DE', status: 'AUTHENTIC' },
-        { label: 'Facial Biometrics', val: '99.4% Liveness Confidence', status: 'VERIFIED' },
-        { label: 'Tamper Analysis', val: 'No Font or Pixel Artifacts', status: 'CLEAN' },
-      ],
+      details: 'ICAO 9303 MRZ checksum valid • No pixel splices or font anomalies',
     },
-    financial: {
-      type: 'Corporate Invoice / PO Match',
+    invoice: {
+      title: 'Invoice & PO',
       filename: 'Acme_Industrial_INV-9042.pdf',
+      docType: 'Commercial Invoice',
       score: '98.9%',
-      fields: [
-        { label: 'Entity Registry', val: 'Acme Industrial Supplies Inc.', status: 'VERIFIED' },
-        { label: '3-Way Match PO', val: 'Matched with PO-1024', status: 'MATCHED' },
-        { label: 'Invoice Total', val: '$55,000.00 USD (Math Clean)', status: 'VALID' },
-        { label: 'Bank Account & Tax', val: 'Validated via Global SWIFT', status: 'AUTHENTIC' },
-      ],
+      details: '3-Way Match Verified with PO-1024 • Total: $55,000.00 USD (Tax accurate)',
     },
     legal: {
-      type: 'Corporate Legal Agreement',
+      title: 'Legal Contracts',
       filename: 'Master_Services_Contract_2026.pdf',
+      docType: 'Corporate Agreement',
       score: '99.5%',
-      fields: [
-        { label: 'Digital Signatures', val: 'Valid Cryptographic PKI Chain', status: 'SECURE' },
-        { label: 'Clause Verification', val: 'Governing Law: Delaware', status: 'VERIFIED' },
-        { label: 'Timestamp Authority', val: 'RFC 3161 Qualified Timestamp', status: 'VALID' },
-        { label: 'Page Continuity', val: '32/32 Pages Complete', status: 'CLEAN' },
-      ],
+      details: 'Cryptographic PKI digital signatures verified • 32/32 pages authenticated',
     },
   };
 
-  const current = presets[activePreset];
-
-  const handleSimulateScan = () => {
-    setIsScanning(true);
+  const handleSimulateInspection = () => {
+    setIsProcessing(true);
+    setVerifiedState(false);
     setTimeout(() => {
-      setIsScanning(false);
+      setIsProcessing(false);
+      setVerifiedState(true);
       if (onShowToast) {
         onShowToast({
           title: 'Document Verified',
-          message: `${current.filename} verified with ${current.score} authenticity confidence.`,
+          message: `${tabData[activeTab].filename} validated with ${tabData[activeTab].score} accuracy.`,
           type: 'success',
           tag: 'Verified',
         });
       }
-    }, 1200);
+    }, 900);
   };
 
   return (
-    <section className="relative pt-12 sm:pt-16 pb-20 sm:pb-28 overflow-hidden">
-      {/* Background Soft Glow Radial Blobs */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[640px] pointer-events-none -z-10">
-        <div className="absolute top-12 left-1/3 w-[450px] h-[340px] bg-blue-100/60 rounded-full blur-[110px] -translate-x-1/2 opacity-70" />
-        <div className="absolute top-28 right-1/4 w-[400px] h-[320px] bg-indigo-100/50 rounded-full blur-[90px] translate-x-1/2 opacity-60" />
-      </div>
+    <main className="relative pt-32 pb-20 lg:pt-40 lg:pb-28">
+      {/* Background Floating Documents Animation */}
+      <FloatingDocuments />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        {/* Top Product Pill Badge */}
+      <div className="max-w-7xl mx-auto px-6 relative z-10 text-center flex flex-col items-center">
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50/90 border border-blue-200/70 text-blue-700 text-xs font-semibold shadow-xs mb-8 hover:bg-blue-100/80 transition-colors cursor-default"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-col items-center w-full max-w-4xl"
         >
-          <Sparkles className="w-3.5 h-3.5 text-blue-600 animate-pulse" />
-          <span>DocTrust Engine 4.2 • Next-Gen AI Verification</span>
+          {/* Top Badge */}
+          <motion.div variants={fadeInUp} className="mb-6">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100 text-sm font-medium text-blue-700 shadow-sm">
+              <Sparkles className="w-4 h-4 text-blue-600" />
+              DocTrust Engine 4.2 • Next-Gen AI Verification
+            </span>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            variants={fadeInUp}
+            className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 leading-[1.1] mb-6"
+          >
+            Read. Verify. Trust. <br />
+            <span className="text-blue-600">instantly.</span>
+          </motion.h1>
+
+          {/* Subheadline */}
+          <motion.p
+            variants={fadeInUp}
+            className="text-lg md:text-xl text-gray-500 max-w-2xl mb-10 leading-relaxed font-normal"
+          >
+            Upload your documents and let our AI extract, verify, and process data securely in milliseconds.
+          </motion.p>
+
+          {/* CTA Buttons */}
+          <motion.div
+            variants={fadeInUp}
+            className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto"
+          >
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onOpenUpload}
+              className="w-full sm:w-auto bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/25 cursor-pointer"
+            >
+              <UploadCloud className="w-5 h-5" />
+              <span>Upload a Document</span>
+              <ArrowRight className="w-5 h-5 ml-1" />
+            </motion.button>
+
+            <motion.a
+              href="#api-preview"
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              className="w-full sm:w-auto bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-xl text-lg font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm"
+            >
+              <Code className="w-5 h-5 text-gray-400" />
+              <span>View API Docs</span>
+            </motion.a>
+          </motion.div>
         </motion.div>
 
-        {/* Hero Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-4xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-[#111827] leading-[1.08] max-w-4xl mx-auto mb-6"
-        >
-          Read. Verify. Trust.{' '}
-          <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 bg-clip-text text-transparent">
-            instantly.
-          </span>
-        </motion.h1>
-
-        {/* Hero Subheading */}
-        <motion.p
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto mb-10 leading-relaxed font-normal"
-        >
-          Upload your documents and let our AI extract, verify, and process data securely in milliseconds.
-        </motion.p>
-
-        {/* Hero Buttons: Upload a Document & View API Docs */}
+        {/* Mac-style Interactive Verification Console Sandbox */}
         <motion.div
-          initial={{ opacity: 0, y: 15 }}
+          initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="flex flex-wrap items-center justify-center gap-4 mb-16"
+          transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
+          className="mt-20 w-full max-w-5xl relative text-left"
         >
-          <button
-            onClick={onOpenUpload}
-            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-base shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200 cursor-pointer"
-          >
-            <UploadCloud className="w-5 h-5" />
-            <span>Upload a Document</span>
-            <ArrowRight className="w-4 h-4 ml-0.5" />
-          </button>
-
-          <a
-            href="#api-preview"
-            className="flex items-center gap-2 px-7 py-3.5 rounded-2xl bg-white hover:bg-gray-50 text-gray-800 border border-gray-200 hover:border-gray-300 font-semibold text-base shadow-xs hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"
-          >
-            <Code2 className="w-4.5 h-4.5 text-gray-500" />
-            <span>View API Docs</span>
-          </a>
-        </motion.div>
-
-        {/* Documents.io-style Interactive Verification Simulator Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="relative mx-auto max-w-4xl"
-        >
-          {/* Floating Callout Badges with subtle bounce */}
-          <div className="hidden md:flex absolute -top-5 -left-6 z-20 items-center gap-2 px-3.5 py-2 rounded-xl bg-white/95 border border-gray-200/80 shadow-lg shadow-gray-200/50 text-xs font-semibold text-gray-800 backdrop-blur-md">
-            <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold text-[10px]">
-              ✓
-            </div>
-            <span>0.4s Verification Speed</span>
+          {/* Floating Badge above Mockup */}
+          <div className="absolute -top-5 left-10 z-20 bg-white border border-gray-100 shadow-lg shadow-gray-900/10 rounded-full px-4 py-2 flex items-center gap-2 text-sm font-semibold text-gray-700">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            0.4s Verification Speed
           </div>
 
-          <div className="hidden md:flex absolute -bottom-5 -right-6 z-20 items-center gap-2 px-4 py-2 rounded-xl bg-white/95 border border-gray-200/80 shadow-lg shadow-gray-200/50 text-xs font-semibold text-gray-800 backdrop-blur-md">
-            <Lock className="w-4 h-4 text-blue-600" />
-            <span>256-Bit TLS Client-side Privacy</span>
-          </div>
-
-          {/* Main Card Sandbox Window */}
-          <div className="rounded-3xl border border-gray-200/90 bg-white/90 p-3 sm:p-5 shadow-2xl shadow-blue-500/10 backdrop-blur-xl ring-1 ring-gray-100 text-left">
-            {/* Window Topbar */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100 mb-4">
-              <div className="flex items-center gap-2">
-                <span className="w-3 h-3 rounded-full bg-rose-400 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-amber-400 inline-block" />
-                <span className="w-3 h-3 rounded-full bg-emerald-400 inline-block" />
-                <span className="ml-2 text-xs font-semibold text-gray-400">
-                  DocTrust AI Verification Console • Live Sandbox
-                </span>
+          {/* Mockup Container */}
+          <div className="bg-white rounded-2xl shadow-2xl shadow-gray-900/10 border border-gray-200 overflow-hidden flex flex-col relative z-10">
+            {/* Mac-style Window Header */}
+            <div className="bg-gray-50/80 backdrop-blur border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+              {/* Window Controls */}
+              <div className="flex gap-2 w-24">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
               </div>
 
-              {/* Document Preset Tabs */}
-              <div className="flex items-center gap-1 p-1 bg-gray-100/80 rounded-xl text-xs font-semibold">
+              {/* Title */}
+              <div className="text-xs font-medium text-gray-500">
+                DocTrust AI Verification Console • Live Sandbox
+              </div>
+
+              <div className="w-24"></div> {/* Spacer for centering */}
+            </div>
+
+            {/* Mockup Body Content */}
+            <div className="p-6 bg-white flex flex-col items-center">
+              {/* Tabs */}
+              <div className="flex gap-2 p-1 bg-gray-50 rounded-lg border border-gray-100 self-end mb-6">
                 <button
-                  onClick={() => setActivePreset('identity')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    activePreset === 'identity'
-                      ? 'bg-white text-blue-600 shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
+                  onClick={() => {
+                    setActiveTab('identity');
+                    setVerifiedState(false);
+                  }}
+                  className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
+                    activeTab === 'identity'
+                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   Identity & ID
                 </button>
                 <button
-                  onClick={() => setActivePreset('financial')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    activePreset === 'financial'
-                      ? 'bg-white text-blue-600 shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
+                  onClick={() => {
+                    setActiveTab('invoice');
+                    setVerifiedState(false);
+                  }}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                    activeTab === 'invoice'
+                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   Invoice & PO
                 </button>
                 <button
-                  onClick={() => setActivePreset('legal')}
-                  className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                    activePreset === 'legal'
-                      ? 'bg-white text-blue-600 shadow-xs'
-                      : 'text-gray-500 hover:text-gray-800'
+                  onClick={() => {
+                    setActiveTab('legal');
+                    setVerifiedState(false);
+                  }}
+                  className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
+                    activeTab === 'legal'
+                      ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
+                      : 'text-gray-500 hover:text-gray-700'
                   }`}
                 >
                   Legal Contracts
                 </button>
               </div>
-            </div>
 
-            {/* Sandbox Body Box */}
-            <div className="bg-[#F9FAFB] rounded-2xl p-5 sm:p-7 border border-gray-200/80 space-y-5 relative overflow-hidden">
-              {/* Laser Scanning Animation */}
-              {isScanning && (
-                <motion.div
-                  initial={{ top: '0%' }}
-                  animate={{ top: ['0%', '100%', '0%'] }}
-                  transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
-                  className="absolute left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-indigo-400 to-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.9)] z-20 pointer-events-none"
-                />
-              )}
-
-              {/* Document File Info Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-white border border-gray-200/80 shadow-xs">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm shrink-0">
-                    <FileText className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <div className="text-sm font-bold text-[#111827]">
-                      {current.filename}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {current.type} • 2.4 MB • Zero Alterations Detected
-                    </div>
-                  </div>
+              {/* Interactive Processing State / Drop Box */}
+              <div
+                onClick={onOpenUpload}
+                className="w-full max-w-3xl border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 p-8 sm:p-10 flex flex-col items-center justify-center text-center hover:bg-blue-50/40 hover:border-blue-300 transition-colors cursor-pointer group"
+              >
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100 group-hover:scale-105 transition-transform">
+                  <ScanFace className="w-8 h-8 text-blue-500" />
                 </div>
+                <h3 className="text-gray-800 font-semibold text-base mb-1">
+                  Awaiting Document Upload: {tabData[activeTab].title}
+                </h3>
+                <p className="text-sm text-gray-500 max-w-md mb-4">
+                  Drop a sample ID card, invoice, or contract here to see instant AI extraction & fraud checks.
+                </p>
 
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <div className="text-xs font-bold text-emerald-600 flex items-center justify-end gap-1">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{current.score} Confidence</span>
-                    </div>
-                    <span className="text-[10px] text-gray-400">Automated Audit Passed</span>
-                  </div>
-
-                  <button
-                    onClick={handleSimulateScan}
-                    disabled={isScanning}
-                    className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs transition-all cursor-pointer disabled:opacity-75"
-                  >
-                    <RotateCw className={`w-3.5 h-3.5 ${isScanning ? 'animate-spin' : ''}`} />
-                    <span>{isScanning ? 'Scanning...' : 'Test Verification'}</span>
-                  </button>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <span className="px-3 py-1 rounded-full bg-white border border-gray-200 text-xs font-medium text-gray-700 shadow-xs">
+                    Sample: {tabData[activeTab].filename}
+                  </span>
+                  <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-700">
+                    Confidence: {tabData[activeTab].score}
+                  </span>
                 </div>
-              </div>
-
-              {/* Verified Field Checkpoints */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {current.fields.map((field, idx) => (
-                  <div
-                    key={idx}
-                    className="p-3 rounded-xl bg-white border border-gray-200/80 flex items-center justify-between text-xs"
-                  >
-                    <div>
-                      <span className="text-[10px] text-gray-400 font-medium block">
-                        {field.label}
-                      </span>
-                      <span className="font-semibold text-gray-800 text-xs">
-                        {field.val}
-                      </span>
-                    </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      {field.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bottom Mini Metrics Bar */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-gray-100 text-center text-xs text-gray-500">
-              <div>
-                <span className="font-bold text-gray-900 block text-sm">99.8%</span>
-                <span>Audit Accuracy</span>
-              </div>
-              <div>
-                <span className="font-bold text-gray-900 block text-sm">&lt; 400ms</span>
-                <span>Extraction Latency</span>
-              </div>
-              <div>
-                <span className="font-bold text-gray-900 block text-sm">180+</span>
-                <span>Global Document Types</span>
-              </div>
-              <div>
-                <span className="font-bold text-gray-900 block text-sm">ISO 27001</span>
-                <span>Certified Security</span>
               </div>
             </div>
           </div>
+
+          {/* Gradient glow behind mockup */}
+          <div className="absolute top-10 inset-0 bg-gradient-to-t from-blue-50/50 to-transparent blur-3xl -z-10"></div>
         </motion.div>
       </div>
-    </section>
+    </main>
   );
 }
 
