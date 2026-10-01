@@ -4,12 +4,13 @@
   "private": true,
   "description": "DocuTrust AI - Turn documents into decisions. AI-Powered Intelligent Document Processing platform.",
   "scripts": {
-    "start": "node server/src/server.js",
-    "server": "cd server && npm run dev",
+    "start": "cd backend && npm run start",
+    "backend": "cd backend && npm run dev",
+    "server": "cd backend && npm run dev",
     "client": "cd client && npm run dev",
-    "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
+    "dev": "concurrently \"npm run backend\" \"npm run client\"",
     "build": "cd client && npm run build",
-    "install:all": "npm install && cd server && npm install && cd ../client && npm install"
+    "install:all": "npm install && cd backend && npm install && cd ../client && npm install"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
