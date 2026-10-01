@@ -69,7 +69,7 @@ export function CoreFeatures({ onOpenUpload, onShowToast }) {
       {/* ======================================================== */}
       {/* 1. FEATURE 1: AI DOCUMENT VERIFICATION (Text Left, Mockup Right) */}
       {/* ======================================================== */}
-      <section className="py-20 sm:py-28 bg-white border-t border-gray-100">
+      <section className="py-20 sm:py-28 bg-transparent border-t border-gray-100/80 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Text Left */}
@@ -227,9 +227,9 @@ export function CoreFeatures({ onOpenUpload, onShowToast }) {
       </section>
 
       {/* ======================================================== */}
-      {/* 2. FEATURE 2: SMART DATA EXTRACTION (Mockup Left, Text Right on #F9FAFB) */}
+      {/* 2. FEATURE 2: SMART DATA EXTRACTION (Mockup Left, Text Right) */}
       {/* ======================================================== */}
-      <section className="py-20 sm:py-28 bg-[#F9FAFB] border-t border-gray-200/60">
+      <section className="py-20 sm:py-28 bg-transparent border-t border-gray-200/60 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Mockup Left (Invoice converting to JSON data) */}
@@ -359,7 +359,7 @@ export function CoreFeatures({ onOpenUpload, onShowToast }) {
       {/* ======================================================== */}
       {/* 3. FEATURE 3: MULTI-PURPOSE WORKFLOWS (Text Left, Visual Right) */}
       {/* ======================================================== */}
-      <section id="api-preview" className="py-20 sm:py-28 bg-white border-t border-gray-100">
+      <section id="api-preview" className="py-20 sm:py-28 bg-transparent border-t border-gray-100/80 relative z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Text Left */}

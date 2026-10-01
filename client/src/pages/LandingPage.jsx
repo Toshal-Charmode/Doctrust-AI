@@ -10,6 +10,7 @@ import Footer from '../components/doctrust/Footer';
 import UploadModal from '../components/doctrust/UploadModal';
 import AIChatWidget from '../components/doctrust/AIChatWidget';
 import Toast from '../components/doctrust/Toast';
+import AntiGravityBackground from '../components/background/AntiGravityBackground';
 import { useLanguage } from '../context/LanguageContext';
 
 export function LandingPage() {
@@ -44,6 +45,9 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-[#111827] font-sans antialiased selection:bg-blue-600/15 selection:text-blue-700 flex flex-col relative overflow-x-hidden">
+      {/* Interactive Anti-Gravity Dual-Layer Ambient Background */}
+      <AntiGravityBackground mode="fixed" />
+
       {/* 1. Glassmorphism Sticky Navbar */}
       <Navbar
         onOpenUpload={() => setIsUploadModalOpen(true)}

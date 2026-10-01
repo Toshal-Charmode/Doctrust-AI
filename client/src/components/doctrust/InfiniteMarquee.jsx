@@ -41,7 +41,7 @@ const ROW_2 = [
 
 export function InfiniteMarquee({ onOpenUpload }) {
   return (
-    <section id="use-cases" className="py-20 sm:py-28 bg-[#F9FAFB] border-t border-gray-200/60 overflow-hidden">
+    <section id="use-cases" className="py-20 sm:py-28 bg-transparent border-t border-gray-200/60 overflow-hidden relative z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-12 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold tracking-wide uppercase mb-3">
           <Sparkles className="w-3.5 h-3.5 text-blue-600" />
