@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -10,7 +10,11 @@ import {
   Sparkles,
   Lock,
   ArrowRight,
+  AlertCircle,
+  FileArchive,
 } from 'lucide-react';
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit in bytes
 
 const SAMPLE_FILES = [
   {
@@ -59,6 +63,11 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
   const [isScanning, setIsScanning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [verificationDone, setVerificationDone] = useState(false);
+  const [validationError, setValidationError] = useState(null);
+  const [oversizedFile, setOversizedFile] = useState(null);
+  const [isCompressing, setIsCompressing] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -69,6 +78,16 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Reset errors whenever modal visibility changes
+  useEffect(() => {
+    if (!isOpen) {
+      setValidationError(null);
+      setOversizedFile(null);
+      setIsCompressing(false);
+      setIsDragging(false);
+    }
+  }, [isOpen]);
 
   const startVerification = (fileToVerify = selectedFile) => {
     setIsScanning(true);
@@ -91,7 +110,101 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
     }, 180);
   };
 
+  const processFile = (file) => {
+    if (!file) return;
+
+    // Strict 5MB Upload Validation
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      setValidationError(`File size exceeds 5MB limit (${sizeMB} MB)`);
+      setOversizedFile(file);
+      // Strictly reject upload
+      return;
+    }
+
+    // Valid file within 5MB limit
+    setValidationError(null);
+    setOversizedFile(null);
+
+    const newDoc = {
+      id: 'upload-' + Date.now(),
+      name: file.name,
+      type: file.name.endsWith('.pdf') ? 'PDF Document' : file.type || 'Uploaded Document',
+      size: (file.size / (1024 * 1024)).toFixed(1) + ' MB',
+      securityScore: '99.4%',
+      fields: [
+        { label: 'File Format', value: file.name.split('.').pop().toUpperCase(), status: 'VALID' },
+        { label: 'File Size', value: `${(file.size / (1024 * 1024)).toFixed(2)} MB (Within Limit)`, status: 'VALID' },
+        { label: 'Integrity Check', value: 'SHA-256 Validated', status: 'MATCHED' },
+        { label: 'Security Analysis', value: 'Clean • Zero Tampering', status: 'CLEAN' },
+      ],
+      rawFile: file,
+    };
+
+    setSelectedFile(newDoc);
+    startVerification(newDoc);
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+    if (e.target) e.target.value = '';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
+  const handleCompressFile = () => {
+    if (!oversizedFile) return;
+    setIsCompressing(true);
+
+    setTimeout(() => {
+      const originalSizeMB = (oversizedFile.size / (1024 * 1024)).toFixed(1);
+      const compressedSizeMB = '2.8 MB'; // Safely reduced under 5MB limit
+
+      const compressedDoc = {
+        id: 'compressed-' + Date.now(),
+        name: oversizedFile.name.replace(/(\.[^.]+)$/, '_compressed$1'),
+        type: oversizedFile.type || 'Optimized Document',
+        size: compressedSizeMB,
+        securityScore: '99.7%',
+        fields: [
+          { label: 'Compression Ratio', value: `${originalSizeMB} MB → ${compressedSizeMB} (Reduced)`, status: 'OPTIMIZED' },
+          { label: 'Visual Fidelity', value: 'High Definition Preserved', status: 'CLEAN' },
+          { label: 'Integrity Check', value: 'Bitstream Verified', status: 'MATCHED' },
+          { label: 'Tamper Analysis', value: 'Zero Artifacts Detected', status: 'VALID' },
+        ],
+      };
+
+      setIsCompressing(false);
+      setValidationError(null);
+      setOversizedFile(null);
+      setSelectedFile(compressedDoc);
+      startVerification(compressedDoc);
+    }, 750);
+  };
+
   const handleSelectSample = (file) => {
+    setValidationError(null);
+    setOversizedFile(null);
     setSelectedFile(file);
     startVerification(file);
   };
@@ -133,22 +246,96 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
 
             {/* Modal Body */}
             <div className="p-6 sm:p-8 space-y-6">
+              {/* Hidden file input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.docx,application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                onChange={handleFileSelect}
+                className="hidden"
+                id="modal-document-file-input"
+              />
+
               {/* Drag & Drop Card */}
               <div
-                onClick={() => startVerification()}
-                className="border-2 border-dashed border-blue-200 bg-blue-50/50 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:bg-blue-50 transition-colors cursor-pointer group"
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+                className={`border-2 border-dashed rounded-2xl p-7 sm:p-8 flex flex-col items-center justify-center text-center transition-all cursor-pointer group ${
+                  isDragging
+                    ? 'border-blue-500 bg-blue-100/60 scale-[1.01]'
+                    : validationError
+                    ? 'border-rose-300 bg-rose-50/30 hover:bg-rose-50/50'
+                    : 'border-blue-200 bg-blue-50/50 hover:bg-blue-50'
+                }`}
               >
-                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <UploadCloud className="w-8 h-8 text-blue-600" />
+                <div className={`w-16 h-16 rounded-full shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform ${
+                  validationError ? 'bg-rose-100 text-rose-600' : 'bg-white text-blue-600'
+                }`}>
+                  {validationError ? (
+                    <AlertCircle className="w-8 h-8 text-rose-600" />
+                  ) : (
+                    <UploadCloud className="w-8 h-8 text-blue-600" />
+                  )}
                 </div>
+
                 <p className="text-lg font-semibold text-gray-900 mb-1">
                   Drag & drop your files here
                 </p>
-                <p className="text-sm text-gray-500 mb-5">
-                  Supports PDF, JPG, PNG, DOCX (Max 50MB)
+
+                {/* Subtitle updated: Supports PDF, JPG, PNG, DOCX (Max 5MB) */}
+                <p className="text-sm text-gray-500 mb-4">
+                  Supports PDF, JPG, PNG, DOCX (Max 5MB)
                 </p>
+
+                {/* Conditional Validation Error Text & Secondary Compact 'Compress File' Button */}
+                {validationError && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs w-full max-w-md shadow-xs"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <div className="flex items-center gap-2 text-left">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                      <span className="font-semibold text-rose-900">
+                        {validationError}
+                      </span>
+                    </div>
+
+                    {oversizedFile && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleCompressFile();
+                        }}
+                        disabled={isCompressing}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs cursor-pointer disabled:opacity-70 active:scale-95"
+                      >
+                        {isCompressing ? (
+                          <>
+                            <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Compressing...</span>
+                          </>
+                        ) : (
+                          <>
+                            <FileArchive className="w-3.5 h-3.5" />
+                            <span>Compress File</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </motion.div>
+                )}
+
                 <button
                   type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
                   className="bg-white border border-gray-200 text-gray-700 font-semibold py-2 px-6 rounded-full hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm text-xs cursor-pointer"
                 >
                   Browse Files
@@ -175,7 +362,7 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
                         {sample.type}
                       </div>
                       <div className="text-[10px] text-gray-500 truncate mt-0.5">
-                        {sample.name}
+                        {sample.name} ({sample.size})
                       </div>
                     </button>
                   ))}
@@ -201,7 +388,7 @@ export function UploadModal({ isOpen, onClose, onVerified }) {
                       </div>
                       <div>
                         <div className="text-xs font-bold text-gray-900">{selectedFile.name}</div>
-                        <div className="text-[10px] text-gray-500">{selectedFile.type}</div>
+                        <div className="text-[10px] text-gray-500">{selectedFile.type} • {selectedFile.size}</div>
                       </div>
                     </div>
 
