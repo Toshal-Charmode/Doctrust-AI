@@ -12,12 +12,12 @@ export function EmptyState({
   icon: Icon = FileQuestion,
 }) {
   return (
-    <div className="flex flex-col items-center justify-center p-12 text-center rounded-2xl border border-dashed border-slate-800 bg-slate-900/30 backdrop-blur-sm">
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-800 to-slate-900 border border-slate-700/60 flex items-center justify-center text-cyan-400 mb-4 shadow-inner">
-        <Icon className="w-7 h-7" />
+    <div className="flex flex-col items-center justify-center p-12 text-center rounded-3xl border border-dashed border-[#EAE5DC] bg-white/80 backdrop-blur-xl shadow-xs">
+      <div className="w-16 h-16 rounded-2xl bg-[#FFC5AA]/25 border border-[#FFC5AA]/50 flex items-center justify-center text-[#e06d6d] mb-4 shadow-xs">
+        <Icon className="w-8 h-8" />
       </div>
-      <h3 className="text-base font-semibold text-slate-100 mb-1">{title}</h3>
-      <p className="text-xs text-slate-400 max-w-md mb-6 leading-relaxed">
+      <h3 className="text-base font-extrabold text-slate-900 mb-1.5">{title}</h3>
+      <p className="text-xs text-slate-500 max-w-md mb-6 leading-relaxed font-medium">
         {description}
       </p>
 
@@ -25,17 +25,17 @@ export function EmptyState({
         {actionLink ? (
           <Link
             to={actionLink}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-medium text-xs shadow-md shadow-blue-600/20 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] hover:opacity-95 text-slate-900 font-extrabold text-xs shadow-sm border border-[#fca99d] transition-all duration-200 cursor-pointer"
           >
-            <UploadCloud className="w-4 h-4" />
+            <UploadCloud className="w-4 h-4 text-slate-900" />
             <span>{actionText}</span>
           </Link>
         ) : (
           <button
             onClick={onAction}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-medium text-xs shadow-md shadow-blue-600/20 transition-all duration-200"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF9D9D] to-[#FFC5AA] hover:opacity-95 text-slate-900 font-extrabold text-xs shadow-sm border border-[#fca99d] transition-all duration-200 cursor-pointer"
           >
-            <UploadCloud className="w-4 h-4" />
+            <UploadCloud className="w-4 h-4 text-slate-900" />
             <span>{actionText}</span>
           </button>
         )}
@@ -43,9 +43,9 @@ export function EmptyState({
         {onSeedDemo && (
           <button
             onClick={onSeedDemo}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-cyan-300 border border-cyan-500/20 font-medium text-xs transition-all duration-200"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#EEF8CD] hover:bg-[#e4f0bc] text-emerald-950 font-bold border border-[#d8e8a8] text-xs transition-all duration-200 cursor-pointer shadow-xs"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-400" />
+            <Zap className="w-3.5 h-3.5 text-amber-600" />
             <span>Load Demo Procurement Docs</span>
           </button>
         )}
