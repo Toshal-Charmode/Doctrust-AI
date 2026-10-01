@@ -27,6 +27,13 @@ DocuTrust AI automates procurement document understanding, classification, struc
 7. **Actionable AI Insights**: Generates executive human-readable explanations explaining *why* an invoice requires review and recommends concrete operational actions (`HOLD PAYMENT`, `REQUEST REVISED INVOICE`, `APPROVE FOR ERP`).
 8. **AI Knowledge Discovery Chat (Grounded RAG)**: Natural conversational search across your document library. Grounded strictly in uploaded documents with zero hallucinations.
 9. **One-Click Demo Experience**: Includes pre-seeded procurement test cases (Acme Supplies PO-1024, Acme Supplies Invoice INV-9042 with quantity discrepancy, and FastTrack Logistics Delivery Receipt DR-5512).
+10. **AI Face Recognition & Biometric Authentication**: Enterprise biometric verification module seamlessly integrated into user login and profile settings:
+    - **Step-Up Biometric Factor**: Password verification triggers a single-use short-lived challenge (`5 min` expiry) if face authentication is active.
+    - **Real Computer Vision AI Engine**: OpenCV-powered face detection, Laplacian sharpness/blur evaluation, multi-scale 128-dimensional normalized facial feature vector extraction, and cosine similarity comparison ($0.96$ calibrated threshold).
+    - **Anti-Spoofing & Liveness Detection (PAD)**: Frequency spectrum analysis and chromaticity distribution heuristics detecting printed photographs and screen replay attacks.
+    - **Biometric Security & Encryption**: Zero raw image persistence; templates encrypted at rest with authenticated `AES-256-GCM`.
+    - **Privacy Controls & Consent**: Explicit informed consent required for enrollment, with one-click disablement, re-enrollment, and complete permanent template purging.
+    - **Safe Fallback Authentication**: Secure password fallback pathway ensures authorized users are never locked out if webcam hardware fails.
 
 ---
 
@@ -243,6 +250,16 @@ All protected endpoints require `Authorization: Bearer <token>`.
 - `POST /api/auth/login` — Sign in and obtain JWT access token
 - `GET /api/auth/me` — Retrieve current authenticated user profile
 
+### Biometric Face Authentication
+- `POST /api/face-auth/enroll` — Enroll live face capture with explicit informed consent (AES-256-GCM template storage)
+- `GET /api/face-auth/status` — Retrieve user's biometric enrollment status and timestamps
+- `POST /api/face-auth/challenge` — Create short-lived (5 min), single-use challenge after password validation
+- `POST /api/face-auth/verify` — Verify live selfie against enrolled template and issue authenticated session
+- `POST /api/face-auth/fallback` — Authenticate using account password if camera or biometric check is unavailable
+- `POST /api/face-auth/disable` — Disable face login requirement (requires password confirmation)
+- `POST /api/face-auth/reenroll` — Replace enrolled facial profile with new capture (requires password confirmation)
+- `POST /api/face-auth/revoke-consent` — Permanently purge biometric template and revoke consent
+
 ### Documents
 - `POST /api/documents/upload` — Upload multiple documents (multipart/form-data)
 - `GET /api/documents` — Query documents with filters (`type`, `status`, `search`)
@@ -271,21 +288,29 @@ All protected endpoints require `Authorization: Bearer <token>`.
 
 ## 🛡️ Security & Enterprise Readiness
 
-- **Zero Client-Side Secrets**: `GEMINI_API_KEY` is strictly confined to the backend server.
+- **Zero Client-Side Secrets**: `GEMINI_API_KEY` and encryption keys are strictly confined to the backend server.
+- **Biometric Cryptography**: Facial templates encrypted at rest with authenticated `AES-256-GCM` using unique 12-byte IVs; zero raw image persistence.
+- **Single-Use Challenge Lifecycle**: 5-minute expiration, replay attack prevention, and strict attempt decrement (max 3 failed tries).
 - **Strict Password Hashing**: Passwords hashed with `bcryptjs` (salt rounds: 10).
 - **JWT Authorization**: Strict bearer token validation with configurable expiry.
-- **User Document Isolation**: Multi-tenant database design ensures users can only access their own documents and validations.
+- **User Document Isolation**: Multi-tenant database design ensures users can only access their own documents, validations, and biometric data.
 - **Multi-Layer Validation**: Request payloads validated with Zod schemas on both frontend and backend.
 - **Controlled File Uploads**: Multer whitelist restricted to `application/pdf`, `image/png`, and `image/jpeg` with 15MB size caps.
 
 ---
 
-## 🚀 Automated Acceptance Test
+## 🚀 Automated Acceptance Tests
 
-Run the comprehensive end-to-end integration test anytime:
+Run the complete automated test suites anytime:
+
 ```bash
-node test_e2e.js
+# 1. AI Face Recognition & Biometric Authentication E2E Test (19 acceptance tests)
+npm run test:face
+
+# 2. Document Processing & 3-Way Match E2E Test (17 acceptance tests)
+npm run test:e2e
 ```
+
 This script exercises all 17 acceptance criteria from registration, document processing, and extraction to 3-way match discrepancy detection, grounded AI chat, and dashboard analytics.
 
 ---

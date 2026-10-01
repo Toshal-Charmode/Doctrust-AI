@@ -5,10 +5,12 @@ import validationRoutes from './validationRoutes.js';
 import dashboardRoutes from './dashboardRoutes.js';
 import chatRoutes from './chatRoutes.js';
 import demoRoutes from './demoRoutes.js';
+import faceAuthRoutes from './faceAuthRoutes.js';
 
 const apiRouter = Router();
 
 apiRouter.use('/auth', authRoutes);
+apiRouter.use('/face-auth', faceAuthRoutes);
 apiRouter.use('/documents', documentRoutes);
 apiRouter.use('/validation', validationRoutes);
 apiRouter.use('/dashboard', dashboardRoutes);

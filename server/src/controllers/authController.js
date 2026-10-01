@@ -76,6 +76,48 @@ export async function login(req, res, next) {
       });
     }
 
+    // Check if user has active biometric face authentication enabled
+    const enrolRes = await db.query(
+      `SELECT enrollment_status, locked_until FROM biometric_enrollments WHERE user_id = $1`,
+      [user.id]
+    );
+
+    if (enrolRes.rows.length > 0 && enrolRes.rows[0].enrollment_status === 'ACTIVE') {
+      const { locked_until } = enrolRes.rows[0];
+      if (locked_until && new Date(locked_until) > new Date()) {
+        return res.status(429).json({
+          success: false,
+          message: 'Account temporarily locked due to excessive failed biometric attempts. Please contact security support.',
+        });
+      }
+
+      // Generate single-use face verification challenge
+      const challengeId = 'fac_' + (await import('crypto')).default.randomBytes(24).toString('hex');
+      const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+      await db.query(
+        `INSERT INTO face_auth_challenges (id, user_id, status, attempts_left, expires_at)
+         VALUES ($1, $2, 'PENDING', 3, $3)`,
+        [challengeId, user.id, expiresAt]
+      );
+
+      return res.status(200).json({
+        success: true,
+        requiresFaceAuth: true,
+        message: 'Password verified. Biometric face verification challenge initiated.',
+        data: {
+          challengeId,
+          expiresAt: expiresAt.toISOString(),
+          attemptsLeft: 3,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+          },
+        },
+      });
+    }
+
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       config.jwtSecret,
@@ -84,6 +126,7 @@ export async function login(req, res, next) {
 
     return res.status(200).json({
       success: true,
+      requiresFaceAuth: false,
       message: 'Login successful',
       data: {
         user: {

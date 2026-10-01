@@ -2,13 +2,15 @@
   "name": "docutrust-ai",
   "version": "1.0.0",
   "private": true,
-  "description": "DocuTrust AI - Turn documents into decisions. AI-Powered Intelligent Document Processing platform.",
+  "type": "module",
   "scripts": {
     "start": "node server/src/server.js",
     "server": "cd server && npm run dev",
     "client": "cd client && npm run dev",
     "dev": "concurrently \"cd server && npm run dev\" \"cd client && npm run dev\"",
     "build": "cd client && npm run build",
+    "test:e2e": "node test_e2e.js",
+    "test:face": "node test_face_auth_e2e.js",
     "install:all": "npm install && cd server && npm install && cd ../client && npm install"
   },
   "devDependencies": {

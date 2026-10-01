@@ -81,3 +81,46 @@ CREATE INDEX IF NOT EXISTS idx_documents_status ON documents(status);
 CREATE INDEX IF NOT EXISTS idx_extracted_data_doc_id ON extracted_data(document_id);
 CREATE INDEX IF NOT EXISTS idx_validations_user_id ON validations(user_id);
 CREATE INDEX IF NOT EXISTS idx_chat_messages_user_id ON chat_messages(user_id);
+
+-- Biometric Face Authentication Tables
+CREATE TABLE IF NOT EXISTS biometric_enrollments (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  enrollment_status TEXT NOT NULL DEFAULT 'ACTIVE', -- ACTIVE, DISABLED, REVOKED
+  encrypted_face_template TEXT NOT NULL,
+  model_version TEXT NOT NULL DEFAULT 'docutrust-cv-facenet-v1.0',
+  threshold_version TEXT NOT NULL DEFAULT 'cosine-0.78',
+  consent_timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  enrollment_timestamp TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  last_successful_authentication TIMESTAMPTZ,
+  failed_attempts INTEGER DEFAULT 0,
+  locked_until TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS face_auth_challenges (
+  id TEXT PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  status TEXT NOT NULL DEFAULT 'PENDING', -- PENDING, COMPLETED, EXPIRED, FAILED
+  attempts_left INTEGER NOT NULL DEFAULT 3,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS biometric_audit_logs (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL, -- ENROLL, RE_ENROLL, VERIFY_SUCCESS, VERIFY_FAILURE, DISABLE, REVOKE_CONSENT, FALLBACK_USED
+  similarity_score NUMERIC(5, 4),
+  liveness_result TEXT, -- PASS, FAIL, INCONCLUSIVE, NOT_IMPLEMENTED
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_biometric_user_id ON biometric_enrollments(user_id);
+CREATE INDEX IF NOT EXISTS idx_challenges_expires ON face_auth_challenges(expires_at);
+CREATE INDEX IF NOT EXISTS idx_challenges_user ON face_auth_challenges(user_id);
+CREATE INDEX IF NOT EXISTS idx_biometric_audit_user ON biometric_audit_logs(user_id);
+
