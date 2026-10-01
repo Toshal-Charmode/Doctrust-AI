@@ -9,9 +9,6 @@ import {
   ScanFace,
   FileText,
   FileCheck2,
-  RotateCw,
-  FileSpreadsheet,
-  Check,
 } from 'lucide-react';
 
 // Framer Motion Variants for reusable animations
@@ -28,25 +25,120 @@ const staggerContainer = {
   }
 };
 
-// Background Collage Component
+// Liquid / Fluid Animated Background Component
+export const LiquidBackground = () => {
+  return (
+    <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+      {/* Liquid Mesh Blob 1 - Tech Blue (Top Left to Center) */}
+      <motion.div
+        animate={{
+          x: [0, 90, -50, 0],
+          y: [0, -70, 50, 0],
+          scale: [1, 1.28, 0.92, 1],
+          borderRadius: [
+            '45% 55% 65% 35% / 40% 45% 55% 60%',
+            '60% 40% 35% 65% / 55% 35% 65% 45%',
+            '35% 65% 60% 40% / 45% 60% 40% 55%',
+            '45% 55% 65% 35% / 40% 45% 55% 60%',
+          ],
+        }}
+        transition={{
+          duration: 18,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+        className="absolute top-12 left-1/4 w-[480px] h-[480px] bg-blue-400/30 blur-[100px] -translate-x-1/2"
+      />
+
+      {/* Liquid Mesh Blob 2 - Ultra-Light Purple / Indigo (Top Right to Center) */}
+      <motion.div
+        animate={{
+          x: [0, -110, 60, 0],
+          y: [0, 80, -60, 0],
+          scale: [1.1, 0.88, 1.25, 1.1],
+          borderRadius: [
+            '55% 45% 40% 60% / 50% 65% 35% 50%',
+            '35% 65% 60% 40% / 60% 40% 60% 40%',
+            '60% 40% 45% 55% / 40% 55% 45% 60%',
+            '55% 45% 40% 60% / 50% 65% 35% 50%',
+          ],
+        }}
+        transition={{
+          duration: 22,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 1,
+        }}
+        className="absolute top-20 right-1/4 w-[460px] h-[460px] bg-indigo-300/30 blur-[110px] translate-x-1/2"
+      />
+
+      {/* Liquid Mesh Blob 3 - Center Cyan / Electric Blue pulsating droplet */}
+      <motion.div
+        animate={{
+          x: [0, 50, -60, 0],
+          y: [0, 45, -50, 0],
+          scale: [0.92, 1.22, 1, 0.92],
+          borderRadius: [
+            '60% 40% 50% 50% / 45% 55% 45% 55%',
+            '40% 60% 60% 40% / 55% 45% 55% 45%',
+            '50% 50% 40% 60% / 40% 60% 40% 60%',
+            '60% 40% 50% 50% / 45% 55% 45% 55%',
+          ],
+        }}
+        transition={{
+          duration: 16,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 2,
+        }}
+        className="absolute top-44 left-1/2 w-[380px] h-[380px] bg-cyan-300/25 blur-[95px] -translate-x-1/2"
+      />
+
+      {/* Liquid Mesh Blob 4 - Deep Violet Liquid Under-glow for Console Mockup */}
+      <motion.div
+        animate={{
+          x: [0, -70, 40, 0],
+          y: [0, -50, 70, 0],
+          scale: [1, 1.2, 0.9, 1],
+          borderRadius: [
+            '50% 50% 60% 40% / 40% 60% 50% 50%',
+            '65% 35% 40% 60% / 55% 45% 65% 35%',
+            '50% 50% 60% 40% / 40% 60% 50% 50%',
+          ],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 3,
+        }}
+        className="absolute top-96 left-1/3 w-[520px] h-[400px] bg-violet-300/25 blur-[120px] -translate-x-1/2"
+      />
+    </div>
+  );
+};
+
+// Background Floating Documents Collage Component (Layered above liquid background)
 export const FloatingDocuments = () => {
   return (
-    <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none flex justify-center items-center opacity-40">
+    <div className="absolute inset-0 -z-5 overflow-hidden pointer-events-none flex justify-center items-center opacity-45">
       {/* Doc 1 - Left Top */}
       <motion.div
         animate={{ y: [0, -20, 0], rotate: [-5, -2, -5] }}
         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute top-10 left-[15%] w-48 h-64 bg-white border border-blue-100 rounded-2xl shadow-xl shadow-blue-900/5 blur-[1px] p-4 flex flex-col gap-3"
+        className="absolute top-10 left-[12%] sm:left-[15%] w-48 h-64 bg-white/90 backdrop-blur-md border border-blue-100 rounded-2xl shadow-xl shadow-blue-900/5 p-4 flex flex-col gap-3"
       >
         <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center mb-2">
-          <ScanFace className="text-blue-300 w-6 h-6" />
+          <ScanFace className="text-blue-400 w-6 h-6" />
         </div>
         <div className="h-2 w-3/4 bg-gray-100 rounded"></div>
         <div className="h-2 w-full bg-gray-100 rounded"></div>
         <div className="h-2 w-5/6 bg-gray-100 rounded"></div>
         <div className="mt-auto flex justify-between">
           <div className="h-6 w-16 bg-blue-50 rounded-md"></div>
-          <div className="h-6 w-6 bg-green-50 rounded-full"></div>
+          <div className="h-6 w-6 bg-emerald-50 rounded-full flex items-center justify-center text-[10px] text-emerald-600 font-bold">
+            ✓
+          </div>
         </div>
       </motion.div>
 
@@ -54,11 +146,13 @@ export const FloatingDocuments = () => {
       <motion.div
         animate={{ y: [0, 25, 0], rotate: [5, 8, 5] }}
         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-        className="absolute top-24 right-[10%] w-56 h-72 bg-white/80 backdrop-blur-sm border border-gray-100 rounded-2xl shadow-2xl shadow-gray-900/5 p-5 flex flex-col gap-3 scale-90"
+        className="absolute top-24 right-[8%] sm:right-[10%] w-56 h-72 bg-white/85 backdrop-blur-md border border-gray-100 rounded-2xl shadow-2xl shadow-gray-900/5 p-5 flex flex-col gap-3 scale-90"
       >
         <div className="flex justify-between items-start mb-4">
-          <FileText className="text-gray-300 w-10 h-10" />
-          <div className="w-8 h-8 rounded bg-blue-100"></div>
+          <FileText className="text-blue-400 w-10 h-10" />
+          <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
+            PDF
+          </div>
         </div>
         <div className="h-3 w-full bg-gray-100 rounded mb-1"></div>
         <div className="h-3 w-4/5 bg-gray-100 rounded mb-1"></div>
@@ -70,14 +164,14 @@ export const FloatingDocuments = () => {
       <motion.div
         animate={{ y: [0, -15, 0], scale: [1, 1.02, 1] }}
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-        className="absolute top-64 left-[40%] w-72 h-40 bg-blue-50/50 backdrop-blur-md border border-blue-100 rounded-xl shadow-lg p-6 blur-[2px] -z-10"
+        className="absolute top-64 left-[38%] w-72 h-40 bg-blue-50/60 backdrop-blur-md border border-blue-100 rounded-xl shadow-lg p-6 -z-10"
       >
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <FileCheck2 className="text-blue-400 w-6 h-6" />
+          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-xs">
+            <FileCheck2 className="text-blue-500 w-6 h-6" />
           </div>
           <div>
-            <div className="h-4 w-24 bg-white rounded mb-2"></div>
+            <div className="h-4 w-28 bg-white rounded mb-2"></div>
             <div className="h-2 w-16 bg-white rounded"></div>
           </div>
         </div>
@@ -88,8 +182,6 @@ export const FloatingDocuments = () => {
 
 export function HeroSection({ onOpenUpload, onShowToast }) {
   const [activeTab, setActiveTab] = useState('identity');
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [verifiedState, setVerifiedState] = useState(false);
 
   const tabData = {
     identity: {
@@ -97,46 +189,30 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
       filename: 'Sample_Passport_DE_4910.pdf',
       docType: 'Biometric Passport',
       score: '99.8%',
-      details: 'ICAO 9303 MRZ checksum valid • No pixel splices or font anomalies',
     },
     invoice: {
       title: 'Invoice & PO',
       filename: 'Acme_Industrial_INV-9042.pdf',
       docType: 'Commercial Invoice',
       score: '98.9%',
-      details: '3-Way Match Verified with PO-1024 • Total: $55,000.00 USD (Tax accurate)',
     },
     legal: {
       title: 'Legal Contracts',
       filename: 'Master_Services_Contract_2026.pdf',
       docType: 'Corporate Agreement',
       score: '99.5%',
-      details: 'Cryptographic PKI digital signatures verified • 32/32 pages authenticated',
     },
   };
 
-  const handleSimulateInspection = () => {
-    setIsProcessing(true);
-    setVerifiedState(false);
-    setTimeout(() => {
-      setIsProcessing(false);
-      setVerifiedState(true);
-      if (onShowToast) {
-        onShowToast({
-          title: 'Document Verified',
-          message: `${tabData[activeTab].filename} validated with ${tabData[activeTab].score} accuracy.`,
-          type: 'success',
-          tag: 'Verified',
-        });
-      }
-    }, 900);
-  };
-
   return (
-    <main className="relative pt-32 pb-20 lg:pt-40 lg:pb-28">
-      {/* Background Floating Documents Animation */}
+    <main className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+      {/* 1. Fluid / Liquid Animated Background Mesh Gradient (-z-10) */}
+      <LiquidBackground />
+
+      {/* 2. Floating Document Icons Background Collage (-z-5, above liquid, below text) */}
       <FloatingDocuments />
 
+      {/* 3. Hero Content Foreground (relative z-10, 100% crisp and legible) */}
       <div className="max-w-7xl mx-auto px-6 relative z-10 text-center flex flex-col items-center">
         <motion.div
           variants={staggerContainer}
@@ -146,7 +222,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
         >
           {/* Top Badge */}
           <motion.div variants={fadeInUp} className="mb-6">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/80 backdrop-blur-sm border border-blue-100 text-sm font-medium text-blue-700 shadow-sm">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50/90 backdrop-blur-md border border-blue-200/80 text-sm font-semibold text-blue-700 shadow-xs">
               <Sparkles className="w-4 h-4 text-blue-600" />
               DocTrust Engine 4.2 • Next-Gen AI Verification
             </span>
@@ -197,7 +273,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
           </motion.div>
         </motion.div>
 
-        {/* Mac-style Interactive Verification Console Sandbox */}
+        {/* Mac-style Live Sandbox Console Mockup */}
         <motion.div
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
@@ -226,7 +302,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
                 DocTrust AI Verification Console • Live Sandbox
               </div>
 
-              <div className="w-24"></div> {/* Spacer for centering */}
+              <div className="w-24"></div>
             </div>
 
             {/* Mockup Body Content */}
@@ -234,10 +310,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
               {/* Tabs */}
               <div className="flex gap-2 p-1 bg-gray-50 rounded-lg border border-gray-100 self-end mb-6">
                 <button
-                  onClick={() => {
-                    setActiveTab('identity');
-                    setVerifiedState(false);
-                  }}
+                  onClick={() => setActiveTab('identity')}
                   className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-all cursor-pointer ${
                     activeTab === 'identity'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
@@ -247,10 +320,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
                   Identity & ID
                 </button>
                 <button
-                  onClick={() => {
-                    setActiveTab('invoice');
-                    setVerifiedState(false);
-                  }}
+                  onClick={() => setActiveTab('invoice')}
                   className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     activeTab === 'invoice'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
@@ -260,10 +330,7 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
                   Invoice & PO
                 </button>
                 <button
-                  onClick={() => {
-                    setActiveTab('legal');
-                    setVerifiedState(false);
-                  }}
+                  onClick={() => setActiveTab('legal')}
                   className={`px-4 py-1.5 text-xs font-medium rounded-md transition-all cursor-pointer ${
                     activeTab === 'legal'
                       ? 'bg-white text-blue-600 shadow-sm border border-gray-200'
@@ -274,19 +341,19 @@ export function HeroSection({ onOpenUpload, onShowToast }) {
                 </button>
               </div>
 
-              {/* Interactive Processing State / Drop Box */}
+              {/* Awaiting Document Upload Drop Box */}
               <div
                 onClick={onOpenUpload}
-                className="w-full max-w-3xl border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 p-8 sm:p-10 flex flex-col items-center justify-center text-center hover:bg-blue-50/40 hover:border-blue-300 transition-colors cursor-pointer group"
+                className="w-full max-w-3xl border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50 p-8 sm:p-12 flex flex-col items-center justify-center text-center hover:bg-blue-50/40 hover:border-blue-300 transition-colors cursor-pointer group"
               >
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm mb-4 border border-gray-100 group-hover:scale-105 transition-transform">
                   <ScanFace className="w-8 h-8 text-blue-500" />
                 </div>
-                <h3 className="text-gray-800 font-semibold text-base mb-1">
+                <h3 className="text-gray-800 font-medium text-base mb-1">
                   Awaiting Document Upload: {tabData[activeTab].title}
                 </h3>
-                <p className="text-sm text-gray-500 max-w-md mb-4">
-                  Drop a sample ID card, invoice, or contract here to see instant AI extraction & fraud checks.
+                <p className="text-sm text-gray-500 max-w-xs mb-4">
+                  Drop a sample ID card or passport here to see instant AI extraction & fraud checks.
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-3">
